@@ -73,22 +73,37 @@ function updateStatus(text, state) {
     const statusText = document.getElementById('statusText');
     
     statusText.textContent = text;
+    statusLed.className = 'w-4 h-4 rounded-full animate-pulse';
     
-    statusLed.className = 'w-3 h-3 rounded-full mr-3 animate-pulse';
     switch(state) {
         case 'connected':
-            statusLed.classList.add('bg-green-500');
+            statusLed.classList.add('bg-emerald-500');
             statusLed.classList.remove('animate-pulse');
             break;
         case 'searching':
-            statusLed.classList.add('bg-yellow-500');
+            statusLed.classList.add('bg-emerald-300');
             break;
         case 'error':
-            statusLed.classList.add('bg-red-500');
+            statusLed.classList.add('bg-red-400');
             break;
         default:
-            statusLed.classList.add('bg-gray-400');
+            statusLed.classList.add('bg-emerald-200');
     }
+}
+
+// Modifier l'affichage des UID avec des icônes feuilles
+function addToHistory(uid) {
+    history = [uid, ...history.slice(0, MAX_HISTORY - 1)];
+    const historyElement = document.getElementById('history');
+    historyElement.innerHTML = history
+        .map(uid => `
+            <div class="flex items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                <i class="fas fa-fingerprint text-emerald-400 mr-3"></i>
+                <span class="font-mono text-emerald-700">${uid}</span>
+                <i class="fas fa-leaf text-emerald-300 ml-auto"></i>
+            </div>
+        `)
+        .join('');
 }
 
 function onDisconnect() {

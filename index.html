@@ -3,43 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lecteur RFID Connecté</title>
+    <title>Green Track - Lecteur RFID Écologique</title>
     <link rel="manifest" href="manifest.json">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .nature-bg {
+            background-image: linear-gradient(rgba(255,255,255,0.97), url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 3L20 97h60z" fill="%234CAF50" opacity="0.1"/></svg>');
+        }
+        .leaf-pulse {
+            animation: leaf-growth 1.5s ease-in-out infinite;
+        }
+        @keyframes leaf-growth {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="min-h-screen nature-bg">
     <div class="container mx-auto px-4 py-8 max-w-2xl">
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6">
-                <i class="fas fa-id-card mr-2 text-blue-500"></i>
-                Lecteur RFID Intelligent
-            </h1>
-
-            <div class="mb-6">
-                <button id="connectBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all">
-                    <i class="fas fa-bluetooth mr-2"></i>
-                    <span id="btnText">Se connecter</span>
-                </button>
+        <div class="bg-white rounded-2xl shadow-lg p-6 border-4 border-emerald-50">
+            <!-- En-tête Arbre -->
+            <div class="text-center mb-8">
+                <div class="inline-block text-emerald-600 leaf-pulse">
+                    <i class="fas fa-tree text-6xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-emerald-800 mt-4">
+                    Green Track
+                    <span class="block text-lg font-normal text-emerald-600">Système de traçabilité écologique</span>
+                </h1>
             </div>
 
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <div class="flex items-center mb-4">
-                    <div id="statusLed" class="w-3 h-3 rounded-full bg-gray-400 mr-3"></div>
-                    <span id="statusText" class="text-gray-600">Non connecté</span>
+            <!-- Carte de connexion -->
+            <div class="bg-emerald-50 rounded-xl p-6 mb-6 border border-emerald-100">
+                <button id="connectBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.01]">
+                    <i class="fas fa-seedling mr-2"></i>
+                    <span id="btnText">Connecter le capteur</span>
+                </button>
+
+                <!-- Indicateur de statut -->
+                <div class="mt-6 flex items-center justify-center space-x-3">
+                    <div id="statusLed" class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"></div>
+                    <span id="statusText" class="text-emerald-700 font-medium">En attente de connexion</span>
+                </div>
+            </div>
+
+            <!-- Affichage des données -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-emerald-50">
+                <!-- Dernière détection -->
+                <div class="mb-6">
+                    <div class="flex items-center text-emerald-600 mb-2">
+                        <i class="fas fa-leaf mr-2"></i>
+                        <span class="font-semibold">Dernière empreinte écologique</span>
+                    </div>
+                    <div id="lastUid" class="text-2xl font-mono text-emerald-800 bg-emerald-50 p-4 rounded-lg text-center">
+                        —— —— —— ——
+                    </div>
                 </div>
 
-                <div class="space-y-4">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-500 mb-1">Dernière détection</h3>
-                        <div id="lastUid" class="text-2xl font-mono text-gray-800">---</div>
+                <!-- Historique -->
+                <div class="border-t border-emerald-100 pt-6">
+                    <div class="flex items-center text-emerald-600 mb-4">
+                        <i class="fas fa-history mr-2"></i>
+                        <span class="font-semibold">Historique des scans</span>
                     </div>
-
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-500 mb-2">Historique</h3>
-                        <div id="history" class="space-y-2 max-h-40 overflow-y-auto">
-                            <!-- Les éléments seront ajoutés dynamiquement -->
-                        </div>
+                    <div id="history" class="space-y-3 max-h-40 overflow-y-auto">
+                        <!-- Éléments d'historique -->
                     </div>
                 </div>
             </div>
