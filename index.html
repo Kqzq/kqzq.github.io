@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecteur RFID BLE</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 15px; font-size: 16px; margin: 10px; }
+        #status { color: #666; margin: 20px 0; }
+        #uid { font-size: 18px; color: #2c3e50; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Lecteur RFID ESP32</h1>
+    <button id="connectBtn">Connecter</button>
+    <div id="status">Statut : Non connecté</div>
+    <div id="uid">Dernier UID : Aucun</div>
+    <script src="app.js"></script>
+</body>
+</html>
