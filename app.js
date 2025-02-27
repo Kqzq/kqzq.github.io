@@ -60,14 +60,16 @@ function addToHistory(uid) {
     const historyElement = document.getElementById('history');
     historyElement.innerHTML = history
         .map(uid => `
-            <div class="flex items-center bg-white p-3 rounded shadow-sm">
-                <i class="fas fa-tag text-gray-400 mr-3"></i>
-                <span class="font-mono text-gray-700">${uid}</span>
+            <div class="flex items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                <i class="fas fa-fingerprint text-emerald-400 mr-3"></i>
+                <span class="font-mono text-emerald-700">${uid}</span>
+                <i class="fas fa-leaf text-emerald-300 ml-auto"></i>
             </div>
         `)
         .join('');
 }
 
+// Mettre à jour la fonction updateStatus avec les nouvelles couleurs
 function updateStatus(text, state) {
     const statusLed = document.getElementById('statusLed');
     const statusText = document.getElementById('statusText');
@@ -91,20 +93,6 @@ function updateStatus(text, state) {
     }
 }
 
-// Modifier l'affichage des UID avec des icônes feuilles
-function addToHistory(uid) {
-    history = [uid, ...history.slice(0, MAX_HISTORY - 1)];
-    const historyElement = document.getElementById('history');
-    historyElement.innerHTML = history
-        .map(uid => `
-            <div class="flex items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                <i class="fas fa-fingerprint text-emerald-400 mr-3"></i>
-                <span class="font-mono text-emerald-700">${uid}</span>
-                <i class="fas fa-leaf text-emerald-300 ml-auto"></i>
-            </div>
-        `)
-        .join('');
-}
 
 function onDisconnect() {
     resetConnection();
