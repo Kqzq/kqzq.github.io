@@ -1,58 +1,100 @@
-// UUIDs de votre ESP32 (à vérifier !)
 const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
 const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+const MAX_HISTORY = 10;
 
-let device; // Référence au périphérique BLE
-let characteristic; // Caractéristique pour les notifications
+let device = null;
+let characteristic = null;
+let history = [];
 
 document.getElementById('connectBtn').addEventListener('click', async () => {
     try {
         if (!device) {
-            // Demande à l'utilisateur de sélectionner le périphérique
+            updateStatus('Recherche en cours...', 'searching');
+            
             device = await navigator.bluetooth.requestDevice({
-                filters: [{ name: 'Greentrack Scanner' }],
+                filters: [{ 
+                    name: 'ESP32-RFID-Reader',
+                    services: [SERVICE_UUID] 
+                }],
                 optionalServices: [SERVICE_UUID]
             });
 
-            // Connexion au périphérique
+            updateStatus('Connexion...', 'connecting');
+            
             const server = await device.gatt.connect();
-            updateStatus('Connecté - Recherche du service...');
-
-            // Accès au service
             const service = await server.getPrimaryService(SERVICE_UUID);
-            updateStatus('Service trouvé - Accès à la caractéristique...');
-
-            // Accès à la caractéristique
             characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
             
-            // Abonnement aux notifications
             await characteristic.startNotifications();
-            updateStatus('Connecté - En attente de badges...');
-
-            // Écoute des changements
-            characteristic.addEventListener('characteristicvaluechanged', handleData);
             
-            // Gestion de la déconnexion
+            characteristic.addEventListener('characteristicvaluechanged', event => {
+                const decoder = new TextDecoder('utf-8');
+                const uid = decoder.decode(event.target.value);
+                updateUID(uid);
+                addToHistory(uid);
+            });
+
             device.addEventListener('gattserverdisconnected', onDisconnect);
+            
+            updateStatus('Connecté', 'connected');
+            document.getElementById('btnText').textContent = 'Déconnecter';
+        } else {
+            await device.gatt.disconnect();
         }
     } catch (error) {
-        updateStatus('Erreur : ' + error.message);
+        console.error('Erreur:', error);
         resetConnection();
+        updateStatus('Erreur de connexion', 'error');
     }
 });
 
-function handleData(event) {
-    const value = new TextDecoder().decode(event.target.value);
-    document.getElementById('uid').textContent = `Dernier UID : ${value}`;
+function updateUID(uid) {
+    const uidElement = document.getElementById('lastUid');
+    uidElement.textContent = uid;
+    uidElement.classList.add('animate-pulse');
+    setTimeout(() => uidElement.classList.remove('animate-pulse'), 500);
+}
+
+function addToHistory(uid) {
+    history = [uid, ...history.slice(0, MAX_HISTORY - 1)];
+    const historyElement = document.getElementById('history');
+    historyElement.innerHTML = history
+        .map(uid => `
+            <div class="flex items-center bg-white p-3 rounded shadow-sm">
+                <i class="fas fa-tag text-gray-400 mr-3"></i>
+                <span class="font-mono text-gray-700">${uid}</span>
+            </div>
+        `)
+        .join('');
+}
+
+function updateStatus(text, state) {
+    const statusLed = document.getElementById('statusLed');
+    const statusText = document.getElementById('statusText');
+    
+    statusText.textContent = text;
+    
+    statusLed.className = 'w-3 h-3 rounded-full mr-3 animate-pulse';
+    switch(state) {
+        case 'connected':
+            statusLed.classList.add('bg-green-500');
+            statusLed.classList.remove('animate-pulse');
+            break;
+        case 'searching':
+            statusLed.classList.add('bg-yellow-500');
+            break;
+        case 'error':
+            statusLed.classList.add('bg-red-500');
+            break;
+        default:
+            statusLed.classList.add('bg-gray-400');
+    }
 }
 
 function onDisconnect() {
-    updateStatus('Déconnecté');
     resetConnection();
-}
-
-function updateStatus(text) {
-    document.getElementById('status').textContent = 'Statut : ' + text;
+    updateStatus('Déconnecté', 'disconnected');
+    document.getElementById('btnText').textContent = 'Se connecter';
 }
 
 function resetConnection() {
@@ -63,9 +105,7 @@ function resetConnection() {
     device = null;
 }
 
-// Enregistrement du Service Worker pour la PWA
+// Service Worker (même code que précédemment)
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-        .then(() => console.log('Service Worker enregistré'))
-        .catch(err => console.log('Échec enregistrement SW :', err));
+    navigator.serviceWorker.register('sw.js');
 }

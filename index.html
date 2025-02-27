@@ -3,20 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lecteur RFID BLE</title>
+    <title>Lecteur RFID Connecté</title>
     <link rel="manifest" href="manifest.json">
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        button { padding: 15px; font-size: 16px; margin: 10px; }
-        #status { color: #666; margin: 20px 0; }
-        #uid { font-size: 18px; color: #2c3e50; font-weight: bold; }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <h1>Lecteur RFID ESP32</h1>
-    <button id="connectBtn">Connecter</button>
-    <div id="status">Statut : Non connecté</div>
-    <div id="uid">Dernier UID : Aucun</div>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-id-card mr-2 text-blue-500"></i>
+                Lecteur RFID Intelligent
+            </h1>
+
+            <div class="mb-6">
+                <button id="connectBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all">
+                    <i class="fas fa-bluetooth mr-2"></i>
+                    <span id="btnText">Se connecter</span>
+                </button>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex items-center mb-4">
+                    <div id="statusLed" class="w-3 h-3 rounded-full bg-gray-400 mr-3"></div>
+                    <span id="statusText" class="text-gray-600">Non connecté</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-500 mb-1">Dernière détection</h3>
+                        <div id="lastUid" class="text-2xl font-mono text-gray-800">---</div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-500 mb-2">Historique</h3>
+                        <div id="history" class="space-y-2 max-h-40 overflow-y-auto">
+                            <!-- Les éléments seront ajoutés dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
