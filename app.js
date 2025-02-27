@@ -10,7 +10,7 @@ document.getElementById('connectBtn').addEventListener('click', async () => {
         if (!device) {
             // Demande à l'utilisateur de sélectionner le périphérique
             device = await navigator.bluetooth.requestDevice({
-                filters: [{ name: 'ESP32-RFID-Reader' }],
+                filters: [{ name: 'Greentrack Scanner' }],
                 optionalServices: [SERVICE_UUID]
             });
 
