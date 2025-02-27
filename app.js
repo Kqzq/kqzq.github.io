@@ -1,5 +1,6 @@
-const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
-const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+const SERVICE_UUID = '4aafc201-1fb5-459e-8fcc-c5c9c331914b';
+const CHARACTERISTIC_UUID = '6eb5483e-36e1-4688-b7f5-ea07361b26a8';
+const DEVICE_NAME = 'GreenTrack-01';
 const MAX_HISTORY = 10;
 
 let device = null;
@@ -9,17 +10,17 @@ let history = [];
 document.getElementById('connectBtn').addEventListener('click', async () => {
     try {
         if (!device) {
-            updateStatus('Recherche en cours...', 'searching');
+            updateStatus('Recherche de l\'appareil...', 'searching');
             
             device = await navigator.bluetooth.requestDevice({
                 filters: [{ 
-                    name: 'ESP32-RFID-Reader',
-                    services: [SERVICE_UUID] 
+                    name: DEVICE_NAME,
+                    services: [SERVICE_UUID]
                 }],
                 optionalServices: [SERVICE_UUID]
             });
 
-            updateStatus('Connexion...', 'connecting');
+            updateStatus('Connexion en cours...', 'connecting');
             
             const server = await device.gatt.connect();
             const service = await server.getPrimaryService(SERVICE_UUID);
@@ -36,7 +37,7 @@ document.getElementById('connectBtn').addEventListener('click', async () => {
 
             device.addEventListener('gattserverdisconnected', onDisconnect);
             
-            updateStatus('Connecté', 'connected');
+            updateStatus('Connecté - Prêt à scanner', 'connected');
             document.getElementById('btnText').textContent = 'Déconnecter';
         } else {
             await device.gatt.disconnect();
@@ -44,7 +45,7 @@ document.getElementById('connectBtn').addEventListener('click', async () => {
     } catch (error) {
         console.error('Erreur:', error);
         resetConnection();
-        updateStatus('Erreur de connexion', 'error');
+        updateStatus('Échec de connexion', 'error');
     }
 });
 
@@ -60,44 +61,41 @@ function addToHistory(uid) {
     const historyElement = document.getElementById('history');
     historyElement.innerHTML = history
         .map(uid => `
-            <div class="flex items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                <i class="fas fa-fingerprint text-emerald-400 mr-3"></i>
-                <span class="font-mono text-emerald-700">${uid}</span>
-                <i class="fas fa-leaf text-emerald-300 ml-auto"></i>
+            <div class="flex items-center bg-green-50 p-3 rounded-lg border border-green-200">
+                <i class="fas fa-hashtag text-green-400 mr-3"></i>
+                <span class="font-mono text-green-700">${uid}</span>
+                <span class="text-green-300 ml-auto">${new Date().toLocaleTimeString()}</span>
             </div>
         `)
         .join('');
 }
 
-// Mettre à jour la fonction updateStatus avec les nouvelles couleurs
 function updateStatus(text, state) {
     const statusLed = document.getElementById('statusLed');
     const statusText = document.getElementById('statusText');
     
     statusText.textContent = text;
-    statusLed.className = 'w-4 h-4 rounded-full animate-pulse';
+    statusLed.className = 'w-3 h-3 rounded-full';
     
     switch(state) {
         case 'connected':
-            statusLed.classList.add('bg-emerald-500');
-            statusLed.classList.remove('animate-pulse');
+            statusLed.classList.add('bg-green-500');
             break;
         case 'searching':
-            statusLed.classList.add('bg-emerald-300');
+            statusLed.classList.add('bg-yellow-500', 'animate-pulse');
             break;
         case 'error':
-            statusLed.classList.add('bg-red-400');
+            statusLed.classList.add('bg-red-500');
             break;
         default:
-            statusLed.classList.add('bg-emerald-200');
+            statusLed.classList.add('bg-gray-400');
     }
 }
-
 
 function onDisconnect() {
     resetConnection();
     updateStatus('Déconnecté', 'disconnected');
-    document.getElementById('btnText').textContent = 'Se connecter';
+    document.getElementById('btnText').textContent = 'Connecter l\'appareil';
 }
 
 function resetConnection() {
@@ -108,7 +106,7 @@ function resetConnection() {
     device = null;
 }
 
-// Service Worker (même code que précédemment)
+// Service Worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
 }
