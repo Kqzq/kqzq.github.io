@@ -1,30 +1,66 @@
-const SERVICE_UUID = '91a48c04-1a7a-45f5-8d27-1d8f6c7a3b0c';
-const CHARACTERISTIC_UUID = 'd3b7a8b1-6c1d-4f5a-9e2c-8a3b6d9e4f1a';
+const UUID = {
+    SERVICE: '550e8400-e29b-41d4-a716-446655440000',
+    CHARACTERISTIC: '550e8400-e29b-41d4-a716-446655440001'
+};
 
-async function connectDevice() {
-  try {
-    const device = await navigator.bluetooth.requestDevice({
-      filters: [{ 
-        name: 'GreenTrack-Node1',
-        services: [SERVICE_UUID] 
-      }],
-      optionalServices: [SERVICE_UUID]
-    });
+class BLEManager {
+    constructor() {
+        this.device = null;
+        this.characteristic = null;
+        this.retryCount = 0;
+    }
 
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService(SERVICE_UUID);
-    const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
-    
-    await characteristic.startNotifications();
-    
-    characteristic.addEventListener('characteristicvaluechanged', event => {
-      const decoder = new TextDecoder();
-      const uid = decoder.decode(event.target.value);
-      console.log('UID reçu:', uid);
-      updateUI(uid);
-    });
+    async connect() {
+        try {
+            this.device = await navigator.bluetooth.requestDevice({
+                filters: [{ name: 'GreenTrack-Pro', services: [UUID.SERVICE] }],
+                optionalServices: [UUID.SERVICE]
+            });
 
-  } catch (error) {
-    console.error('Erreur:', error);
-  }
+            const server = await this.device.gatt.connect();
+            const service = await server.getPrimaryService(UUID.SERVICE);
+            this.characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
+            
+            await this.characteristic.startNotifications();
+            this.characteristic.addEventListener('characteristicvaluechanged', this.handleData);
+            
+            console.log('BLE : Connecté avec succès');
+            return true;
+            
+        } catch (error) {
+            console.error(`BLE : Erreur (Tentative ${++this.retryCount}) :`, error);
+            if (this.retryCount < 3) {
+                console.log('BLE : Nouvelle tentative...');
+                return this.connect();
+            }
+            throw error;
+        }
+    }
+
+    handleData(event) {
+        const value = new TextDecoder().decode(event.target.value);
+        console.log('BLE : Données reçues :', value);
+        document.getElementById('uid').innerText = value;
+    }
+
+    async disconnect() {
+        if (this.characteristic) {
+            await this.characteristic.stopNotifications();
+        }
+        if (this.device?.gatt.connected) {
+            await this.device.gatt.disconnect();
+        }
+    }
 }
+
+// Initialisation
+const ble = new BLEManager();
+
+document.getElementById('connectBtn').addEventListener('click', async () => {
+    try {
+        await ble.connect();
+        document.getElementById('status').innerText = 'Connecté';
+    } catch (error) {
+        document.getElementById('status').innerText = 'Erreur : ' + error.message;
+    }
+});
