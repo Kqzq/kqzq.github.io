@@ -1,6 +1,6 @@
 // Configuration BLE - Doit correspondre EXACTEMENT à l'ESP32
-const SERVICE_UUID = '9eaa1c40-0f6a-4b0a-8a17-51a8f3f5d3f6';
-const CHARACTERISTIC_UUID = 'd68b73b0-3840-4e7b-8b4d-2f074c4c7875';
+const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 const DEVICE_NAME = 'GreenTrack-ESP32';
 const MAX_HISTORY = 10;
 
