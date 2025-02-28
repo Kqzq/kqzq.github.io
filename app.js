@@ -1,112 +1,168 @@
-const SERVICE_UUID = '4aafc201-1fb5-459e-8fcc-c5c9c331914b';
-const CHARACTERISTIC_UUID = '6eb5483e-36e1-4688-b7f5-ea07361b26a8';
-const DEVICE_NAME = 'GreenTrack-01';
+// Configuration BLE - Doit correspondre EXACTEMENT à l'ESP32
+const SERVICE_UUID = '9eaa1c40-0f6a-4b0a-8a17-51a8f3f5d3f6';
+const CHARACTERISTIC_UUID = 'd68b73b0-3840-4e7b-8b4d-2f074c4c7875';
+const DEVICE_NAME = 'GreenTrack-ESP32';
 const MAX_HISTORY = 10;
 
+// Variables d'état
 let device = null;
 let characteristic = null;
 let history = [];
+let isConnecting = false;
 
-document.getElementById('connectBtn').addEventListener('click', async () => {
+// Éléments UI
+const connectBtn = document.getElementById('connectBtn');
+const statusLed = document.getElementById('statusLed');
+const statusText = document.getElementById('statusText');
+const lastUid = document.getElementById('lastUid');
+const historyList = document.getElementById('history');
+
+// Mode debug
+const DEBUG_MODE = true;
+function logDebug(...messages) {
+    if(DEBUG_MODE) console.log('[DEBUG]', ...messages);
+}
+
+// Gestionnaire de connexion
+connectBtn.addEventListener('click', async () => {
     try {
-        if (!device) {
-            updateStatus('Recherche de l\'appareil...', 'searching');
-            
-            device = await navigator.bluetooth.requestDevice({
-                filters: [{ 
-                    name: DEVICE_NAME,
-                    services: [SERVICE_UUID]
-                }],
-                optionalServices: [SERVICE_UUID]
-            });
-
-            updateStatus('Connexion en cours...', 'connecting');
-            
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService(SERVICE_UUID);
-            characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
-            
-            await characteristic.startNotifications();
-            
-            characteristic.addEventListener('characteristicvaluechanged', event => {
-                const decoder = new TextDecoder('utf-8');
-                const uid = decoder.decode(event.target.value);
-                updateUID(uid);
-                addToHistory(uid);
-            });
-
-            device.addEventListener('gattserverdisconnected', onDisconnect);
-            
-            updateStatus('Connecté - Prêt à scanner', 'connected');
-            document.getElementById('btnText').textContent = 'Déconnecter';
-        } else {
+        if(isConnecting) return;
+        
+        if (device?.gatt?.connected) {
             await device.gatt.disconnect();
+            return;
         }
+
+        isConnecting = true;
+        updateStatus('Recherche de l\'appareil...', 'searching');
+        
+        logDebug('Début de la connexion BLE...');
+        device = await navigator.bluetooth.requestDevice({
+            filters: [{
+                name: DEVICE_NAME,
+                services: [SERVICE_UUID]
+            }],
+            optionalServices: [SERVICE_UUID]
+        });
+
+        if (!device) {
+            throw new Error('Appareil non sélectionné');
+        }
+
+        updateStatus('Connexion en cours...', 'connecting');
+        logDebug('Tentative de connexion à', device.name);
+        
+        const server = await device.gatt.connect();
+        logDebug('Connecté au serveur GATT');
+
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        logDebug('Service trouvé:', service.uuid);
+
+        characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+        logDebug('Caractéristique trouvée:', characteristic.uuid);
+
+        await characteristic.startNotifications();
+        logDebug('Notifications activées');
+
+        characteristic.addEventListener('characteristicvaluechanged', handleData);
+        device.addEventListener('gattserverdisconnected', onDisconnect);
+
+        updateStatus('Connecté - Prêt à scanner', 'connected');
+        connectBtn.textContent = 'Déconnecter';
+        
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur de connexion:', error);
+        updateStatus(`Erreur: ${error.message}`, 'error');
         resetConnection();
-        updateStatus('Échec de connexion', 'error');
+    } finally {
+        isConnecting = false;
     }
 });
 
+// Gestion des données reçues
+function handleData(event) {
+    try {
+        const decoder = new TextDecoder('utf-8');
+        const uid = decoder.decode(event.target.value);
+        logDebug('UID reçu:', uid);
+        
+        updateUID(uid);
+        addToHistory(uid);
+        
+    } catch (error) {
+        console.error('Erreur traitement des données:', error);
+    }
+}
+
+// Mise à jour de l'interface
 function updateUID(uid) {
-    const uidElement = document.getElementById('lastUid');
-    uidElement.textContent = uid;
-    uidElement.classList.add('animate-pulse');
-    setTimeout(() => uidElement.classList.remove('animate-pulse'), 500);
+    lastUid.textContent = uid;
+    lastUid.classList.add('animate-pulse');
+    setTimeout(() => lastUid.classList.remove('animate-pulse'), 500);
 }
 
 function addToHistory(uid) {
-    history = [uid, ...history.slice(0, MAX_HISTORY - 1)];
-    const historyElement = document.getElementById('history');
-    historyElement.innerHTML = history
-        .map(uid => `
-            <div class="flex items-center bg-green-50 p-3 rounded-lg border border-green-200">
-                <i class="fas fa-hashtag text-green-400 mr-3"></i>
-                <span class="font-mono text-green-700">${uid}</span>
-                <span class="text-green-300 ml-auto">${new Date().toLocaleTimeString()}</span>
-            </div>
-        `)
-        .join('');
+    history = [{
+        uid,
+        timestamp: new Date().toLocaleTimeString()
+    }, ...history.slice(0, MAX_HISTORY - 1)];
+
+    historyList.innerHTML = history.map(entry => `
+        <div class="history-item">
+            <i class="fas fa-fingerprint text-green-400 mr-2"></i>
+            <span class="uid">${entry.uid}</span>
+            <span class="timestamp">${entry.timestamp}</span>
+        </div>
+    `).join('');
 }
 
+// Gestion des états
 function updateStatus(text, state) {
-    const statusLed = document.getElementById('statusLed');
-    const statusText = document.getElementById('statusText');
-    
     statusText.textContent = text;
-    statusLed.className = 'w-3 h-3 rounded-full';
+    statusLed.className = 'status-led';
     
     switch(state) {
         case 'connected':
-            statusLed.classList.add('bg-green-500');
+            statusLed.classList.add('connected');
             break;
         case 'searching':
-            statusLed.classList.add('bg-yellow-500', 'animate-pulse');
+            statusLed.classList.add('searching');
             break;
         case 'error':
-            statusLed.classList.add('bg-red-500');
+            statusLed.classList.add('error');
             break;
         default:
-            statusLed.classList.add('bg-gray-400');
+            statusLed.classList.add('disconnected');
     }
+}
+
+// Réinitialisation connexion
+function resetConnection() {
+    if (characteristic) {
+        characteristic.stopNotifications().catch(() => {});
+        characteristic.removeEventListener('characteristicvaluechanged', handleData);
+        characteristic = null;
+    }
+    
+    if (device) {
+        device.removeEventListener('gattserverdisconnected', onDisconnect);
+        device.gatt?.disconnect().catch(() => {});
+        device = null;
+    }
+    
+    connectBtn.textContent = 'Connecter l\'appareil';
+    updateStatus('Déconnecté', 'disconnected');
 }
 
 function onDisconnect() {
+    logDebug('Déconnexion détectée');
     resetConnection();
-    updateStatus('Déconnecté', 'disconnected');
-    document.getElementById('btnText').textContent = 'Connecter l\'appareil';
 }
 
-function resetConnection() {
-    if (characteristic) {
-        characteristic.stopNotifications();
-        characteristic = null;
+// Vérification compatibilité Web Bluetooth
+document.addEventListener('DOMContentLoaded', () => {
+    if (!navigator.bluetooth) {
+        updateStatus('Erreur: Bluetooth non supporté', 'error');
+        connectBtn.disabled = true;
     }
-    device = null;
-}
-
-// Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-}
+});
