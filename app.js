@@ -27,13 +27,13 @@ function logDebug(...messages) {
 connectBtn.addEventListener('click', async () => {
     try {
         if(isConnecting) return;
+        isConnecting = true;
         
         if (device?.gatt?.connected) {
             await device.gatt.disconnect();
             return;
         }
 
-        isConnecting = true;
         updateStatus('Recherche de l\'appareil...', 'searching');
         
         logDebug('Début de la connexion BLE...');
@@ -56,10 +56,16 @@ connectBtn.addEventListener('click', async () => {
         logDebug('Connecté au serveur GATT');
 
         const service = await server.getPrimaryService(SERVICE_UUID);
+        if (!service) throw new Error('Service non trouvé');
         logDebug('Service trouvé:', service.uuid);
 
         characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+        if (!characteristic) throw new Error('Caractéristique non trouvée');
         logDebug('Caractéristique trouvée:', characteristic.uuid);
+
+        if (!characteristic.properties.notify) {
+            throw new Error('Notifications non supportées');
+        }
 
         await characteristic.startNotifications();
         logDebug('Notifications activées');
