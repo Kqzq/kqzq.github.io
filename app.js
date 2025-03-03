@@ -54,3 +54,6 @@ function disconnectBLE() {
 
 document.getElementById('connectBtn').addEventListener('click', connectBLE);
 document.getElementById('disconnectBtn').addEventListener('click', disconnectBLE);
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("connectBtn").classList.remove("hidden");
+});
