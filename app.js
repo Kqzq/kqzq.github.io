@@ -1,5 +1,5 @@
 const UUID = {
-    SERVICE: '12345678-1234-5678-1234-56789abcdef0',
+    SERVICE: 'b4a7a47b-f248-4582-845d-780d2febfc89',
     CHARACTERISTIC: 'abcdef00-1234-5678-1234-56789abcdef0'
 };
 
