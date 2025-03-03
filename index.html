@@ -3,24 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenTrack Reader</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Green Track - Lecteur RFID Écologique</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .nature-bg {
+            background-image: linear-gradient(rgba(255,255,255,0.97)), url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 3L20 97h60z" fill="%234CAF50" opacity="0.1"/></svg>');
+        }
+        .leaf-pulse {
+            animation: leaf-growth 1.5s ease-in-out infinite;
+        }
+        @keyframes leaf-growth {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🌿 GreenTrack Reader</h1>
-        <p class="subtitle">Scannez vos cartes RFID et suivez vos entrées facilement.</p>
+<body class="min-h-screen nature-bg">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <div class="bg-white rounded-2xl shadow-lg p-6 border-4 border-emerald-50">
+            <!-- En-tête Arbre -->
+            <div class="text-center mb-8">
+                <div class="inline-block text-emerald-600 leaf-pulse">
+                    <i class="fas fa-tree text-6xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-emerald-800 mt-4">
+                    Green Track
+                    <span class="block text-lg font-normal text-emerald-600">Système de traçabilité écologique</span>
+                </h1>
+            </div>
 
-        <div id="status" class="status disconnected">🔴 Non connecté</div>
+            <!-- Carte de connexion -->
+            <div class="bg-emerald-50 rounded-xl p-6 mb-6 border border-emerald-100">
+                <button id="connectBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.01]">
+                    <i class="fas fa-seedling mr-2"></i>
+                    <span id="btnText">Connecter le capteur</span>
+                </button>
 
-        <div class="button-container">
-            <button id="connectBtn" class="btn">🔗 Connecter</button>
-            <button id="disconnectBtn" class="btn disconnect">❌ Déconnecter</button>
-        </div>
+                <!-- Indicateur de statut -->
+                <div class="mt-6 flex items-center justify-center space-x-3">
+                    <div id="statusLed" class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"></div>
+                    <span id="statusText" class="text-emerald-700 font-medium">En attente de connexion</span>
+                </div>
+            </div>
 
-        <div class="uid-container">
-            <h2>Dernier Scan :</h2>
-            <div id="uid">---</div>
+            <!-- Affichage des données -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-emerald-50">
+                <!-- Dernière détection -->
+                <div class="mb-6">
+                    <div class="flex items-center text-emerald-600 mb-2">
+                        <i class="fas fa-leaf mr-2"></i>
+                        <span class="font-semibold">Dernière empreinte écologique</span>
+                    </div>
+                    <div id="lastUid" class="text-2xl font-mono text-emerald-800 bg-emerald-50 p-4 rounded-lg text-center">
+                        —— —— —— ——
+                    </div>
+                </div>
+
+                <!-- Historique -->
+                <div class="border-t border-emerald-100 pt-6">
+                    <div class="flex items-center text-emerald-600 mb-4">
+                        <i class="fas fa-history mr-2"></i>
+                        <span class="font-semibold">Historique des scans</span>
+                    </div>
+                    <div id="history" class="space-y-3 max-h-40 overflow-y-auto">
+                        <!-- Éléments d'historique -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
