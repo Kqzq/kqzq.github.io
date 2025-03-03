@@ -1,66 +1,38 @@
 const UUID = {
-    SERVICE: '550e8400-e29b-41d4-a716-446655440000',
-    CHARACTERISTIC: '550e8400-e29b-41d4-a716-446655440001'
+    SERVICE: '12345678-1234-5678-1234-56789abcdef0',
+    CHARACTERISTIC: 'abcdef00-1234-5678-1234-56789abcdef0'
 };
 
-class BLEManager {
-    constructor() {
-        this.device = null;
-        this.characteristic = null;
-        this.retryCount = 0;
-    }
-
-    async connect() {
-        try {
-            this.device = await navigator.bluetooth.requestDevice({
-                filters: [{ name: 'GreenTrack-Pro', services: [UUID.SERVICE] }],
-                optionalServices: [UUID.SERVICE]
-            });
-
-            const server = await this.device.gatt.connect();
-            const service = await server.getPrimaryService(UUID.SERVICE);
-            this.characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
-            
-            await this.characteristic.startNotifications();
-            this.characteristic.addEventListener('characteristicvaluechanged', this.handleData);
-            
-            console.log('BLE : Connecté avec succès');
-            return true;
-            
-        } catch (error) {
-            console.error(`BLE : Erreur (Tentative ${++this.retryCount}) :`, error);
-            if (this.retryCount < 3) {
-                console.log('BLE : Nouvelle tentative...');
-                return this.connect();
-            }
-            throw error;
-        }
-    }
-
-    handleData(event) {
-        const value = new TextDecoder().decode(event.target.value);
-        console.log('BLE : Données reçues :', value);
-        document.getElementById('uid').innerText = value;
-    }
-
-    async disconnect() {
-        if (this.characteristic) {
-            await this.characteristic.stopNotifications();
-        }
-        if (this.device?.gatt.connected) {
-            await this.device.gatt.disconnect();
-        }
-    }
-}
-
-// Initialisation
-const ble = new BLEManager();
+let device;
+let characteristic;
 
 document.getElementById('connectBtn').addEventListener('click', async () => {
     try {
-        await ble.connect();
-        document.getElementById('status').innerText = 'Connecté';
+        device = await navigator.bluetooth.requestDevice({
+            filters: [{ 
+                name: 'GreenTrack-V2',
+                services: [UUID.SERVICE]
+            }],
+            optionalServices: [UUID.SERVICE]
+        });
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(UUID.SERVICE);
+        characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
+
+        await characteristic.startNotifications();
+        
+        characteristic.addEventListener('characteristicvaluechanged', event => {
+            const decoder = new TextDecoder();
+            const uid = decoder.decode(event.target.value);
+            document.getElementById('uid').textContent = uid;
+            document.getElementById('status').className = 'connected';
+            document.getElementById('status').textContent = `Connecté - ${uid}`;
+        });
+
     } catch (error) {
-        document.getElementById('status').innerText = 'Erreur : ' + error.message;
+        console.error('Erreur:', error);
+        document.getElementById('status').className = 'disconnected';
+        document.getElementById('status').textContent = 'Erreur: ' + error.message;
     }
 });

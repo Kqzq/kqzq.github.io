@@ -1,76 +1,20 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Track - Monitoring Écologique</title>
-    <link rel="manifest" href="manifest.json">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>GreenTrack Reader</title>
     <style>
-        @keyframes leaf-float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(-3deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
-        }
-        .leaf-float { animation: leaf-float 3s ease-in-out infinite; }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background: #4CAF50; color: white; }
+        .disconnected { background: #f44336; color: white; }
+        button { padding: 10px 20px; font-size: 16px; }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-green-50 to-emerald-100">
-    <div class="container mx-auto px-4 py-8 max-w-2xl">
-        <div class="bg-white rounded-2xl shadow-xl p-6 border-4 border-green-50">
-            <!-- En-tête -->
-            <div class="text-center mb-8">
-                <div class="leaf-float inline-block text-green-600">
-                    <i class="fas fa-leaf text-6xl"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-green-800 mt-4">
-                    Green Track
-                    <span class="block text-lg font-normal text-green-600">Système de traçabilité environnementale</span>
-                </h1>
-            </div>
-
-            <!-- Carte de connexion -->
-            <div class="bg-green-50 rounded-xl p-6 mb-6 border border-green-200">
-                <button id="connectBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-md">
-                    <i class="fas fa-bluetooth-b mr-2"></i>
-                    <span id="btnText">Connecter l'appareil</span>
-                </button>
-
-                <!-- Indicateur de statut -->
-                <div class="mt-6 flex items-center justify-center space-x-3">
-                    <div id="statusLed" class="w-3 h-3 rounded-full bg-gray-300"></div>
-                    <span id="statusText" class="text-green-700 font-medium">En attente de connexion</span>
-                </div>
-            </div>
-
-            <!-- Affichage des données -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-green-100">
-                <!-- Dernière détection -->
-                <div class="mb-6">
-                    <div class="flex items-center text-green-600 mb-2">
-                        <i class="fas fa-seedling mr-2"></i>
-                        <span class="font-semibold">Dernière empreinte</span>
-                    </div>
-                    <div id="lastUid" class="text-2xl font-mono text-green-800 bg-green-50 p-4 rounded-lg text-center border border-green-200">
-                        —— —— —— ——
-                    </div>
-                </div>
-
-                <!-- Historique -->
-                <div class="border-t border-green-200 pt-6">
-                    <div class="flex items-center text-green-600 mb-4">
-                        <i class="fas fa-history mr-2"></i>
-                        <span class="font-semibold">Historique des scans</span>
-                    </div>
-                    <div id="history" class="space-y-3 max-h-40 overflow-y-auto">
-                        <!-- Éléments ajoutés dynamiquement -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+<body>
+    <h1>GreenTrack Reader</h1>
+    <button id="connectBtn">Connecter</button>
+    <div id="status" class="disconnected">Non connecté</div>
+    <div id="uid" style="font-size: 24px; margin-top: 20px;">---</div>
     <script src="app.js"></script>
 </body>
 </html>
