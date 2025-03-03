@@ -1,29 +1,52 @@
 const UUID = {
-    SERVICE: '4fafc201-1fb5-459e-8fcc-c5c9c331914b',
-    CHARACTERISTIC: 'beb5483e-36e1-4688-b7f5-ea07361b26a8'
+    SERVICE: '12345678-1234-5678-1234-56789abcdef0',
+    CHARACTERISTIC: 'abcdef00-1234-5678-1234-56789abcdef0'
 };
 
-document.getElementById('connectBtn').addEventListener('click', async () => {
+let device;
+let characteristic;
+
+async function connectBLE() {
     try {
-        const device = await navigator.bluetooth.requestDevice({
-            filters: [{ name: 'GreenTrack-ESP32', services: [UUID.SERVICE] }],
+        device = await navigator.bluetooth.requestDevice({
+            filters: [{ name: 'GreenTrack-V2' }],
             optionalServices: [UUID.SERVICE]
         });
 
         const server = await device.gatt.connect();
         const service = await server.getPrimaryService(UUID.SERVICE);
-        const characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
+        characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
 
         await characteristic.startNotifications();
         
         characteristic.addEventListener('characteristicvaluechanged', event => {
-            const decoder = new TextDecoder();
-            const uid = decoder.decode(event.target.value);
-            document.getElementById('status').textContent = `UID reçu : ${uid}`;
+            const uid = new TextDecoder().decode(event.target.value);
+            document.getElementById('uid').textContent = uid;
+            document.getElementById('status').className = 'connected';
+            document.getElementById('status').textContent = `Connecté - ${uid}`;
         });
+
+        device.addEventListener('gattserverdisconnected', reconnectBLE);
 
     } catch (error) {
         console.error('Erreur:', error);
-        document.getElementById('status').textContent = 'Erreur : ' + error.message;
+        document.getElementById('status').className = 'disconnected';
+        document.getElementById('status').textContent = 'Erreur: ' + error.message;
     }
-});
+}
+
+function disconnectBLE() {
+    if (device && device.gatt.connected) {
+        device.gatt.disconnect();
+        document.getElementById('status').className = 'disconnected';
+        document.getElementById('status').textContent = 'Déconnecté';
+    }
+}
+
+function reconnectBLE() {
+    console.log('Tentative de reconnexion...');
+    setTimeout(connectBLE, 3000);
+}
+
+document.getElementById('connectBtn').addEventListener('click', connectBLE);
+document.getElementById('disconnectBtn').addEventListener('click', disconnectBLE);
