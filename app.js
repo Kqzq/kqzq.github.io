@@ -1,38 +1,29 @@
 const UUID = {
-    SERVICE: 'b4a7a47b-f248-4582-845d-780d2febfc89',
-    CHARACTERISTIC: 'abcdef00-1234-5678-1234-56789abcdef0'
+    SERVICE: '4fafc201-1fb5-459e-8fcc-c5c9c331914b',
+    CHARACTERISTIC: 'beb5483e-36e1-4688-b7f5-ea07361b26a8'
 };
-
-let device;
-let characteristic;
 
 document.getElementById('connectBtn').addEventListener('click', async () => {
     try {
-        device = await navigator.bluetooth.requestDevice({
-            filters: [{ 
-                name: 'GreenTrack-V2',
-                services: [UUID.SERVICE]
-            }],
+        const device = await navigator.bluetooth.requestDevice({
+            filters: [{ name: 'GreenTrack-ESP32', services: [UUID.SERVICE] }],
             optionalServices: [UUID.SERVICE]
         });
 
         const server = await device.gatt.connect();
         const service = await server.getPrimaryService(UUID.SERVICE);
-        characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
+        const characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
 
         await characteristic.startNotifications();
         
         characteristic.addEventListener('characteristicvaluechanged', event => {
             const decoder = new TextDecoder();
             const uid = decoder.decode(event.target.value);
-            document.getElementById('uid').textContent = uid;
-            document.getElementById('status').className = 'connected';
-            document.getElementById('status').textContent = `Connecté - ${uid}`;
+            document.getElementById('status').textContent = `UID reçu : ${uid}`;
         });
 
     } catch (error) {
         console.error('Erreur:', error);
-        document.getElementById('status').className = 'disconnected';
-        document.getElementById('status').textContent = 'Erreur: ' + error.message;
+        document.getElementById('status').textContent = 'Erreur : ' + error.message;
     }
 });
