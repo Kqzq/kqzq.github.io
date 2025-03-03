@@ -6,6 +6,11 @@ const UUID = {
 let device;
 let characteristic;
 
+// Afficher le bouton "Connecter" au chargement du site
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("connectBtn").style.display = "flex";
+});
+
 async function connectBLE() {
     try {
         device = await navigator.bluetooth.requestDevice({
@@ -54,6 +59,3 @@ function disconnectBLE() {
 
 document.getElementById('connectBtn').addEventListener('click', connectBLE);
 document.getElementById('disconnectBtn').addEventListener('click', disconnectBLE);
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("connectBtn").classList.remove("hidden");
-});
