@@ -1,20 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GreenTrack Reader</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        #status { padding: 10px; margin: 10px 0; border-radius: 5px; }
-        .connected { background: #4CAF50; color: white; }
-        .disconnected { background: #f44336; color: white; }
-        button { padding: 10px 20px; font-size: 16px; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>GreenTrack Reader</h1>
-    <button id="connectBtn">Connecter</button>
-    <div id="status" class="disconnected">Non connecté</div>
-    <div id="uid" style="font-size: 24px; margin-top: 20px;">---</div>
+    <div class="container">
+        <h1>🌿 GreenTrack Reader</h1>
+        <p class="subtitle">Scannez vos cartes RFID et suivez vos entrées facilement.</p>
+
+        <div id="status" class="status disconnected">🔴 Non connecté</div>
+
+        <div class="button-container">
+            <button id="connectBtn" class="btn">🔗 Connecter</button>
+            <button id="disconnectBtn" class="btn disconnect">❌ Déconnecter</button>
+        </div>
+
+        <div class="uid-container">
+            <h2>Dernier Scan :</h2>
+            <div id="uid">---</div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
