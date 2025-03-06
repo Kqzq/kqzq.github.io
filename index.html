@@ -28,52 +28,45 @@
             
             <!-- En-tête Nature -->
             <div class="text-center mb-6">
-                <i class="fas fa-seedling text-6xl text-emerald-600"></i>
+                <i class="fas fa-tree text-6xl text-emerald-600"></i>
                 <h1 class="text-3xl font-bold text-emerald-800 mt-2">
-                    GreenTrack - Suivi des Arbres
+                    GreenTrack - Gestion des Arbres
                 </h1>
-                <p class="text-lg font-normal text-emerald-600">Identifiez et enregistrez vos arbres</p>
-            </div>
-
-            <!-- Scan RFID -->
-            <div class="bg-emerald-50 rounded-2xl p-6 mb-6 border border-emerald-200 shadow-sm">
-                <button id="connectBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl">
-                    <i class="fas fa-wifi mr-2"></i> Scanner un arbre (RFID)
-                </button>
-
-                <div class="mt-6 flex items-center justify-center space-x-3">
-                    <div id="statusLed" class="w-4 h-4 rounded-full bg-gray-300"></div>
-                    <span id="statusText" class="text-emerald-700 font-medium">En attente...</span>
-                </div>
-
-                <div class="mt-4 text-center text-lg font-semibold">
-                    UID détecté : <span id="lastUid" class="text-emerald-800">-</span>
-                </div>
+                <p class="text-lg font-normal text-emerald-600">Suivi précis et écologique</p>
             </div>
 
             <!-- Formulaire d'enregistrement -->
             <div class="bg-white rounded-xl shadow-md p-6 border border-emerald-100">
-                <label class="block font-semibold text-emerald-800">Type d'arbre :</label>
+                
+                <!-- RFID Tag -->
+                <label class="block font-semibold text-emerald-800">RFID TAG :</label>
+                <div class="flex">
+                    <input type="text" id="rfidTag" class="w-full p-3 border rounded-lg mb-4 bg-gray-100" readonly>
+                    <button id="scanBtn" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-lg">
+                        <i class="fas fa-wifi"></i>
+                    </button>
+                </div>
+
+                <!-- Espèce d'arbre -->
+                <label class="block font-semibold text-emerald-800">Espèce d'arbre :</label>
                 <input type="text" id="treeType" class="w-full p-3 border rounded-lg mb-4">
 
-                <label class="block font-semibold text-emerald-800">Taille (en cm) :</label>
-                <input type="number" id="treeSize" class="w-full p-3 border rounded-lg mb-4">
+                <!-- Hauteur -->
+                <label class="block font-semibold text-emerald-800">Hauteur (cm) :</label>
+                <input type="number" id="treeHeight" class="w-full p-3 border rounded-lg mb-4">
 
-                <label class="block font-semibold text-emerald-800">Âge :</label>
-                <input type="number" id="treeAge" class="w-full p-3 border rounded-lg mb-4">
-
-                <label class="block font-semibold text-emerald-800">Date d'entrée :</label>
+                <!-- Date de plantation -->
+                <label class="block font-semibold text-emerald-800">Date de plantation :</label>
                 <input type="date" id="treeDate" class="w-full p-3 border rounded-lg mb-4">
 
-                <!-- Capture photo -->
-                <label class="block font-semibold text-emerald-800">Photo :</label>
-                <input type="file" id="treePhoto" accept="image/*" capture="environment" class="w-full p-3 border rounded-lg mb-4">
-
-                <!-- Localisation -->
-                <button id="getLocationBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg mb-4">
-                    📍 Récupérer la localisation GPS
-                </button>
-                <p class="text-center text-sm text-gray-600">Latitude: <span id="latitude">-</span> | Longitude: <span id="longitude">-</span></p>
+                <!-- Localisation GPS -->
+                <label class="block font-semibold text-emerald-800">Localisation GPS :</label>
+                <div class="flex">
+                    <input type="text" id="gpsLocation" class="w-full p-3 border rounded-lg mb-4 bg-gray-100" readonly>
+                    <button id="getLocationBtn" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </button>
+                </div>
 
                 <!-- Bouton d'envoi -->
                 <button id="submitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 px-6 rounded-xl">

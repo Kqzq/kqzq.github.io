@@ -6,7 +6,7 @@ const UUID = {
 let device;
 let characteristic;
 
-// Connexion au capteur RFID
+// Connexion au capteur RFID et remplissage du champ RFID TAG
 async function connectBLE() {
     try {
         device = await navigator.bluetooth.requestDevice({
@@ -22,9 +22,7 @@ async function connectBLE() {
 
         characteristic.addEventListener('characteristicvaluechanged', event => {
             const uid = new TextDecoder().decode(event.target.value);
-            document.getElementById('lastUid').textContent = uid;
-            document.getElementById('statusLed').className = "w-4 h-4 rounded-full bg-green-500";
-            document.getElementById('statusText').textContent = `Identifié - UID: ${uid}`;
+            document.getElementById('rfidTag').value = uid;
         });
 
     } catch (error) {
@@ -35,9 +33,24 @@ async function connectBLE() {
 // Récupération GPS
 document.getElementById('getLocationBtn').addEventListener('click', () => {
     navigator.geolocation.getCurrentPosition(position => {
-        document.getElementById('latitude').textContent = position.coords.latitude;
-        document.getElementById('longitude').textContent = position.coords.longitude;
+        document.getElementById('gpsLocation').value = 
+            `Lat: ${position.coords.latitude}, Lng: ${position.coords.longitude}`;
     }, () => alert("Impossible d'obtenir la localisation."));
 });
 
-document.getElementById('connectBtn').addEventListener('click', connectBLE);
+// Envoi des données (simulation pour base de données externe)
+document.getElementById('submitBtn').addEventListener('click', () => {
+    const treeData = {
+        rfidTag: document.getElementById('rfidTag').value,
+        species: document.getElementById('treeType').value,
+        height: document.getElementById('treeHeight').value,
+        plantingDate: document.getElementById('treeDate').value,
+        location: document.getElementById('gpsLocation').value
+    };
+
+    console.log("Données envoyées :", JSON.stringify(treeData, null, 2));
+    alert("Données prêtes à être envoyées !");
+});
+
+// Événement pour lancer le scan RFID
+document.getElementById('scanBtn').addEventListener('click', connectBLE);
