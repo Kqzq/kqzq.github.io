@@ -10,15 +10,18 @@
         .nature-bg {
             background: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
         }
-        .scrollbar::-webkit-scrollbar {
-            width: 6px;
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            transition: 0.3s;
+            width: 100%;
         }
-        .scrollbar::-webkit-scrollbar-track {
-            background: #dcedc8;
-        }
-        .scrollbar::-webkit-scrollbar-thumb {
-            background: #66bb6a;
-            border-radius: 6px;
+        .btn i {
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -40,10 +43,13 @@
                 
                 <!-- RFID Tag -->
                 <label class="block font-semibold text-emerald-800">RFID TAG :</label>
-                <div class="flex">
-                    <input type="text" id="rfidTag" class="w-full p-3 border rounded-lg mb-4 bg-gray-100" readonly>
-                    <button id="scanBtn" class="ml-2 px-4 py-3 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700">
-                        <i class="fas fa-wifi mr-2"></i> Scanner
+                <div class="flex items-center mb-4">
+                    <input type="text" id="rfidTag" class="w-full p-3 border rounded-lg bg-gray-100" readonly>
+                    <button id="scanBtn" class="ml-2 btn bg-emerald-600 text-white hover:bg-emerald-700">
+                        <i class="fas fa-wifi"></i> Scanner
+                    </button>
+                    <button id="clearRfid" class="ml-2 btn bg-red-500 text-white hover:bg-red-600 hidden">
+                        <i class="fas fa-times"></i> Effacer
                     </button>
                 </div>
 
@@ -63,8 +69,8 @@
                 <label class="block font-semibold text-emerald-800">Localisation GPS :</label>
                 <div class="flex">
                     <input type="text" id="gpsLocation" class="w-full p-3 border rounded-lg mb-4 bg-gray-100" readonly>
-                    <button id="getLocationBtn" class="ml-2 px-4 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700">
-                        <i class="fas fa-map-marker-alt mr-2"></i> Localiser
+                    <button id="getLocationBtn" class="ml-2 btn bg-blue-600 text-white hover:bg-blue-700">
+                        <i class="fas fa-map-marker-alt"></i> Localiser
                     </button>
                 </div>
 
@@ -72,14 +78,17 @@
                 <label class="block font-semibold text-emerald-800">Photo de l'arbre :</label>
                 <div class="flex flex-col items-center mb-4">
                     <input type="file" id="treePhoto" accept="image/*" capture="environment" class="hidden">
-                    <button id="photoBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-5 rounded-lg">
+                    <button id="photoBtn" class="btn bg-yellow-500 text-white hover:bg-yellow-600">
                         📸 Prendre une photo
                     </button>
                     <img id="photoPreview" class="mt-4 hidden w-40 h-40 object-cover rounded-lg border border-gray-300">
+                    <button id="clearPhoto" class="btn bg-red-500 text-white hover:bg-red-600 mt-2 hidden">
+                        ❌ Supprimer la photo
+                    </button>
                 </div>
 
                 <!-- Bouton d'envoi -->
-                <button id="submitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 px-6 rounded-xl mt-4 shadow-md">
+                <button id="submitBtn" class="btn bg-emerald-700 text-white hover:bg-emerald-800 mt-4 shadow-md">
                     ✅ Enregistrer l'arbre
                 </button>
             </div>

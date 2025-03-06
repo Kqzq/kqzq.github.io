@@ -23,12 +23,19 @@ async function connectBLE() {
         characteristic.addEventListener('characteristicvaluechanged', event => {
             const uid = new TextDecoder().decode(event.target.value);
             document.getElementById('rfidTag').value = uid;
+            document.getElementById('clearRfid').classList.remove("hidden");
         });
 
     } catch (error) {
         console.error('Erreur:', error);
     }
 }
+
+// Suppression du scan RFID
+document.getElementById('clearRfid').addEventListener('click', () => {
+    document.getElementById('rfidTag').value = "";
+    document.getElementById('clearRfid').classList.add("hidden");
+});
 
 // Récupération GPS
 document.getElementById('getLocationBtn').addEventListener('click', () => {
@@ -40,9 +47,7 @@ document.getElementById('getLocationBtn').addEventListener('click', () => {
 
 // Capture photo via la caméra
 document.getElementById('photoBtn').addEventListener('click', () => {
-    const fileInput = document.getElementById('treePhoto');
-    fileInput.setAttribute("capture", "environment"); // Forcer l'utilisation de la caméra arrière
-    fileInput.click();
+    document.getElementById('treePhoto').click();
 });
 
 document.getElementById('treePhoto').addEventListener('change', function(event) {
@@ -50,23 +55,19 @@ document.getElementById('treePhoto').addEventListener('change', function(event) 
         let src = URL.createObjectURL(event.target.files[0]);
         document.getElementById('photoPreview').src = src;
         document.getElementById('photoPreview').classList.remove("hidden");
+        document.getElementById('clearPhoto').classList.remove("hidden");
     }
 });
 
-// Envoi des données (simulation pour base de données externe)
-document.getElementById('submitBtn').addEventListener('click', () => {
-    const treeData = {
-        rfidTag: document.getElementById('rfidTag').value,
-        species: document.getElementById('treeType').value,
-        height: document.getElementById('treeHeight').value,
-        plantingDate: document.getElementById('treeDate').value,
-        location: document.getElementById('gpsLocation').value,
-        photo: document.getElementById('treePhoto').files.length > 0 
-            ? document.getElementById('treePhoto').files[0].name 
-            : "Aucune photo"
-    };
+// Suppression de la photo
+document.getElementById('clearPhoto').addEventListener('click', () => {
+    document.getElementById('treePhoto').value = "";
+    document.getElementById('photoPreview').classList.add("hidden");
+    document.getElementById('clearPhoto').classList.add("hidden");
+});
 
-    console.log("Données envoyées :", JSON.stringify(treeData, null, 2));
+// Envoi des données
+document.getElementById('submitBtn').addEventListener('click', () => {
     alert("Données prêtes à être envoyées !");
 });
 
