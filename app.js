@@ -6,11 +6,7 @@ const UUID = {
 let device;
 let characteristic;
 
-// Afficher le bouton "Connecter" au chargement du site
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("connectBtn").style.display = "flex";
-});
-
+// Connexion au capteur RFID
 async function connectBLE() {
     try {
         device = await navigator.bluetooth.requestDevice({
@@ -28,34 +24,20 @@ async function connectBLE() {
             const uid = new TextDecoder().decode(event.target.value);
             document.getElementById('lastUid').textContent = uid;
             document.getElementById('statusLed').className = "w-4 h-4 rounded-full bg-green-500";
-            document.getElementById('statusText').textContent = `Connecté - UID: ${uid}`;
-            
-            let history = document.getElementById("history");
-            let newItem = document.createElement("div");
-            newItem.className = "p-2 bg-emerald-100 rounded-md shadow-sm";
-            newItem.textContent = uid;
-            history.prepend(newItem);
+            document.getElementById('statusText').textContent = `Identifié - UID: ${uid}`;
         });
-
-        document.getElementById("connectBtn").classList.add("hidden");
-        document.getElementById("disconnectBtn").classList.remove("hidden");
 
     } catch (error) {
         console.error('Erreur:', error);
-        document.getElementById('statusLed').className = "w-4 h-4 rounded-full bg-red-500";
-        document.getElementById('statusText').textContent = 'Erreur: ' + error.message;
     }
 }
 
-function disconnectBLE() {
-    if (device && device.gatt.connected) {
-        device.gatt.disconnect();
-        document.getElementById("connectBtn").classList.remove("hidden");
-        document.getElementById("disconnectBtn").classList.add("hidden");
-        document.getElementById('statusLed').className = "w-4 h-4 rounded-full bg-gray-300";
-        document.getElementById('statusText').textContent = "Déconnecté.";
-    }
-}
+// Récupération GPS
+document.getElementById('getLocationBtn').addEventListener('click', () => {
+    navigator.geolocation.getCurrentPosition(position => {
+        document.getElementById('latitude').textContent = position.coords.latitude;
+        document.getElementById('longitude').textContent = position.coords.longitude;
+    }, () => alert("Impossible d'obtenir la localisation."));
+});
 
 document.getElementById('connectBtn').addEventListener('click', connectBLE);
-document.getElementById('disconnectBtn').addEventListener('click', disconnectBLE);

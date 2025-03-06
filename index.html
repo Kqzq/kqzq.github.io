@@ -3,19 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenTrack - RFID Écologique</title>
+    <title>GreenTrack - Suivi des Arbres</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .nature-bg {
             background: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
-        }
-        .leaf-pulse {
-            animation: leaf-growth 1.8s ease-in-out infinite;
-        }
-        @keyframes leaf-growth {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
         }
         .scrollbar::-webkit-scrollbar {
             width: 6px;
@@ -34,59 +27,58 @@
         <div class="bg-white rounded-3xl shadow-xl p-6 border-4 border-emerald-100">
             
             <!-- En-tête Nature -->
-            <div class="text-center mb-8">
-                <div class="inline-block text-emerald-600 leaf-pulse">
-                    <i class="fas fa-seedling text-6xl"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-emerald-800 mt-4">
-                    GreenTrack
-                    <span class="block text-lg font-normal text-emerald-600">Système de traçabilité écologique</span>
+            <div class="text-center mb-6">
+                <i class="fas fa-seedling text-6xl text-emerald-600"></i>
+                <h1 class="text-3xl font-bold text-emerald-800 mt-2">
+                    GreenTrack - Suivi des Arbres
                 </h1>
+                <p class="text-lg font-normal text-emerald-600">Identifiez et enregistrez vos arbres</p>
             </div>
 
-            <!-- Carte de connexion -->
+            <!-- Scan RFID -->
             <div class="bg-emerald-50 rounded-2xl p-6 mb-6 border border-emerald-200 shadow-sm">
-                <button id="connectBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center">
-                    <i class="fas fa-wifi mr-2"></i>
-                    <span>Connecter le capteur</span>
-                </button>
-                
-                <button id="disconnectBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-5 mt-4 rounded-xl transition-all transform hover:scale-105 hidden">
-                    <i class="fas fa-unlink mr-2"></i>
-                    Déconnecter
+                <button id="connectBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl">
+                    <i class="fas fa-wifi mr-2"></i> Scanner un arbre (RFID)
                 </button>
 
-                <!-- Indicateur de statut -->
                 <div class="mt-6 flex items-center justify-center space-x-3">
-                    <div id="statusLed" class="w-4 h-4 rounded-full bg-gray-300 animate-pulse"></div>
-                    <span id="statusText" class="text-emerald-700 font-medium">En attente de connexion...</span>
+                    <div id="statusLed" class="w-4 h-4 rounded-full bg-gray-300"></div>
+                    <span id="statusText" class="text-emerald-700 font-medium">En attente...</span>
+                </div>
+
+                <div class="mt-4 text-center text-lg font-semibold">
+                    UID détecté : <span id="lastUid" class="text-emerald-800">-</span>
                 </div>
             </div>
 
-            <!-- Affichage des données -->
+            <!-- Formulaire d'enregistrement -->
             <div class="bg-white rounded-xl shadow-md p-6 border border-emerald-100">
-                
-                <!-- Dernier scan -->
-                <div class="mb-6">
-                    <div class="flex items-center text-emerald-600 mb-2">
-                        <i class="fas fa-leaf mr-2"></i>
-                        <span class="font-semibold">Dernière empreinte RFID</span>
-                    </div>
-                    <div id="lastUid" class="text-2xl font-mono text-emerald-800 bg-emerald-50 p-4 rounded-lg text-center">
-                        —— —— —— ——
-                    </div>
-                </div>
+                <label class="block font-semibold text-emerald-800">Type d'arbre :</label>
+                <input type="text" id="treeType" class="w-full p-3 border rounded-lg mb-4">
 
-                <!-- Historique -->
-                <div class="border-t border-emerald-200 pt-6">
-                    <div class="flex items-center text-emerald-600 mb-4">
-                        <i class="fas fa-clock mr-2"></i>
-                        <span class="font-semibold">Historique des scans</span>
-                    </div>
-                    <div id="history" class="space-y-3 max-h-40 overflow-y-auto scrollbar bg-emerald-50 rounded-lg p-3">
-                        <p class="text-gray-500 text-sm text-center">Aucun scan enregistré...</p>
-                    </div>
-                </div>
+                <label class="block font-semibold text-emerald-800">Taille (en cm) :</label>
+                <input type="number" id="treeSize" class="w-full p-3 border rounded-lg mb-4">
+
+                <label class="block font-semibold text-emerald-800">Âge :</label>
+                <input type="number" id="treeAge" class="w-full p-3 border rounded-lg mb-4">
+
+                <label class="block font-semibold text-emerald-800">Date d'entrée :</label>
+                <input type="date" id="treeDate" class="w-full p-3 border rounded-lg mb-4">
+
+                <!-- Capture photo -->
+                <label class="block font-semibold text-emerald-800">Photo :</label>
+                <input type="file" id="treePhoto" accept="image/*" capture="environment" class="w-full p-3 border rounded-lg mb-4">
+
+                <!-- Localisation -->
+                <button id="getLocationBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg mb-4">
+                    📍 Récupérer la localisation GPS
+                </button>
+                <p class="text-center text-sm text-gray-600">Latitude: <span id="latitude">-</span> | Longitude: <span id="longitude">-</span></p>
+
+                <!-- Bouton d'envoi -->
+                <button id="submitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 px-6 rounded-xl">
+                    ✅ Enregistrer l'arbre
+                </button>
             </div>
         </div>
     </div>
