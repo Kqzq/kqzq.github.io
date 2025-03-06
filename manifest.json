@@ -1,18 +1,19 @@
 {
-    "name": "Lecteur RFID",
-    "short_name": "RFID Reader",
-    "start_url": "/",
+    "name": "GreenTrack",
+    "short_name": "GreenTrack",
+    "description": "Application de suivi des arbres avec RFID et GPS",
+    "start_url": "index.html",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#2c3e50",
+    "theme_color": "#4CAF50",
     "icons": [
         {
-            "src": "icon-192.png",
+            "src": "icons/icon-192x192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "icon-512.png",
+            "src": "icons/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png"
         }
