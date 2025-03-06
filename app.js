@@ -38,9 +38,11 @@ document.getElementById('getLocationBtn').addEventListener('click', () => {
     }, () => alert("Impossible d'obtenir la localisation."));
 });
 
-// Capture photo
+// Capture photo via la caméra
 document.getElementById('photoBtn').addEventListener('click', () => {
-    document.getElementById('treePhoto').click();
+    const fileInput = document.getElementById('treePhoto');
+    fileInput.setAttribute("capture", "environment"); // Forcer l'utilisation de la caméra arrière
+    fileInput.click();
 });
 
 document.getElementById('treePhoto').addEventListener('change', function(event) {
