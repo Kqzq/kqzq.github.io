@@ -38,6 +38,19 @@ document.getElementById('getLocationBtn').addEventListener('click', () => {
     }, () => alert("Impossible d'obtenir la localisation."));
 });
 
+// Capture photo
+document.getElementById('photoBtn').addEventListener('click', () => {
+    document.getElementById('treePhoto').click();
+});
+
+document.getElementById('treePhoto').addEventListener('change', function(event) {
+    if (event.target.files.length > 0) {
+        let src = URL.createObjectURL(event.target.files[0]);
+        document.getElementById('photoPreview').src = src;
+        document.getElementById('photoPreview').classList.remove("hidden");
+    }
+});
+
 // Envoi des données (simulation pour base de données externe)
 document.getElementById('submitBtn').addEventListener('click', () => {
     const treeData = {
@@ -45,7 +58,10 @@ document.getElementById('submitBtn').addEventListener('click', () => {
         species: document.getElementById('treeType').value,
         height: document.getElementById('treeHeight').value,
         plantingDate: document.getElementById('treeDate').value,
-        location: document.getElementById('gpsLocation').value
+        location: document.getElementById('gpsLocation').value,
+        photo: document.getElementById('treePhoto').files.length > 0 
+            ? document.getElementById('treePhoto').files[0].name 
+            : "Aucune photo"
     };
 
     console.log("Données envoyées :", JSON.stringify(treeData, null, 2));

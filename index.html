@@ -42,8 +42,8 @@
                 <label class="block font-semibold text-emerald-800">RFID TAG :</label>
                 <div class="flex">
                     <input type="text" id="rfidTag" class="w-full p-3 border rounded-lg mb-4 bg-gray-100" readonly>
-                    <button id="scanBtn" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-lg">
-                        <i class="fas fa-wifi"></i>
+                    <button id="scanBtn" class="ml-2 px-4 py-3 rounded-lg bg-emerald-600 text-white shadow-md hover:bg-emerald-700">
+                        <i class="fas fa-wifi"></i> Scanner
                     </button>
                 </div>
 
@@ -63,13 +63,23 @@
                 <label class="block font-semibold text-emerald-800">Localisation GPS :</label>
                 <div class="flex">
                     <input type="text" id="gpsLocation" class="w-full p-3 border rounded-lg mb-4 bg-gray-100" readonly>
-                    <button id="getLocationBtn" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg">
-                        <i class="fas fa-map-marker-alt"></i>
+                    <button id="getLocationBtn" class="ml-2 px-4 py-3 rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-700">
+                        <i class="fas fa-map-marker-alt"></i> Localiser
                     </button>
                 </div>
 
+                <!-- Capture photo -->
+                <label class="block font-semibold text-emerald-800">Photo de l'arbre :</label>
+                <div class="flex flex-col items-center mb-4">
+                    <input type="file" id="treePhoto" accept="image/*" capture="environment" class="hidden">
+                    <button id="photoBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-5 rounded-lg">
+                        📸 Prendre une photo
+                    </button>
+                    <img id="photoPreview" class="mt-4 hidden w-40 h-40 object-cover rounded-lg border border-gray-300">
+                </div>
+
                 <!-- Bouton d'envoi -->
-                <button id="submitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 px-6 rounded-xl">
+                <button id="submitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 px-6 rounded-xl mt-4 shadow-md">
                     ✅ Enregistrer l'arbre
                 </button>
             </div>
