@@ -7,40 +7,77 @@ const UUID = {
 let device;
 let characteristic;
 
-// Connexion au capteur RFID et remplissage du champ RFID TAG
-async function connectBLE() {
-    try {
-        showLoading(true, 'Connexion au lecteur RFID...');
-        
-        device = await navigator.bluetooth.requestDevice({
-            filters: [{ name: 'GreenTrack-V2' }],
-            optionalServices: [UUID.SERVICE]
-        });
-
-        const server = await device.gatt.connect();
-        const service = await server.getPrimaryService(UUID.SERVICE);
-        characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
-
-        await characteristic.startNotifications();
-
-        characteristic.addEventListener('characteristicvaluechanged', event => {
-            const uid = new TextDecoder().decode(event.target.value);
-            document.getElementById('rfidTag').value = uid;
-            document.getElementById('clearRfid').classList.remove("hidden");
-            
-            // Animation pour montrer que le scan a réussi
-            animateSuccess('rfidTag');
-            showToast('Tag RFID détecté avec succès!');
+// Connexion au capteur RFID et remplissage du champ RFID TAG avec gestion d'erreurs améliorée
+function connectBLE() {
+    // Vérifier si la fonctionnalité Bluetooth est disponible
+    if (!navigator.bluetooth) {
+        showToast('Bluetooth non supporté sur cet appareil. Entrez le code manuellement.', true);
+        // Rendre le champ RFID éditable pour entrée manuelle
+        const rfidInput = document.getElementById('rfidTag');
+        rfidInput.readOnly = false;
+        rfidInput.placeholder = "Entrez le code manuellement";
+        rfidInput.classList.remove('bg-gray-100');
+        rfidInput.classList.add('bg-white');
+        return;
+    }
+    
+    showLoading(true, 'Connexion au lecteur RFID...');
+    
+    // Utiliser des promesses au lieu de async/await pour meilleure compatibilité
+    navigator.bluetooth.requestDevice({
+        filters: [{ name: 'GreenTrack-V2' }],
+        optionalServices: [UUID.SERVICE]
+    })
+    .then(function(dev) {
+        device = dev;
+        return device.gatt.connect();
+    })
+    .then(function(server) {
+        return server.getPrimaryService(UUID.SERVICE);
+    })
+    .then(function(service) {
+        return service.getCharacteristic(UUID.CHARACTERISTIC);
+    })
+    .then(function(char) {
+        characteristic = char;
+        return characteristic.startNotifications();
+    })
+    .then(function() {
+        characteristic.addEventListener('characteristicvaluechanged', function(event) {
+            try {
+                // Utiliser une méthode plus compatible pour décoder
+                let value = event.target.value;
+                let uid = "";
+                for (let i = 0; i < value.byteLength; i++) {
+                    uid += String.fromCharCode(value.getUint8(i));
+                }
+                
+                document.getElementById('rfidTag').value = uid;
+                document.getElementById('clearRfid').classList.remove("hidden");
+                
+                // Animation pour montrer que le scan a réussi
+                animateSuccess('rfidTag');
+                showToast('Tag RFID détecté avec succès!');
+            } catch (e) {
+                console.error('Erreur de décodage:', e);
+            }
         });
         
         showLoading(false);
         showToast('Connexion au lecteur RFID réussie');
-
-    } catch (error) {
+    })
+    .catch(function(error) {
         console.error('Erreur:', error);
         showLoading(false);
-        showToast('Erreur de connexion au lecteur RFID', true);
-    }
+        showToast('Erreur de connexion au lecteur RFID. Entrée manuelle possible.', true);
+        
+        // Permettre l'entrée manuelle en cas d'échec
+        const rfidInput = document.getElementById('rfidTag');
+        rfidInput.readOnly = false;
+        rfidInput.placeholder = "Entrez le code manuellement";
+        rfidInput.classList.remove('bg-gray-100');
+        rfidInput.classList.add('bg-white');
+    });
 }
 
 // Suppression du scan RFID
@@ -141,13 +178,62 @@ document.getElementById('submitBtn').addEventListener('click', () => {
     if (!validateForm()) return;
     
     showLoading(true, 'Enregistrement en cours...');
+
+    // Préparation des données pour l'API
+    const rfidTag = document.getElementById('rfidTag').value;
+    const treeType = document.getElementById('treeType').value;
+    const treeHeight = document.getElementById('treeHeight').value;
+    const treeDate = document.getElementById('treeDate').value;
+    const gpsLocation = document.getElementById('gpsLocation').value;
+    const fileInput = document.getElementById('treePhoto');
     
-    // Simuler un envoi de données
-    setTimeout(() => {
-        resetForm();
+    // Création d'un objet FormData pour l'envoi multipart (nécessaire pour l'image)
+    const formData = new FormData();
+    formData.append('espece', treeType);
+    formData.append('rfid', rfidTag);
+    formData.append('date_plantation', treeDate);
+    formData.append('humidite', ''); // Champ humidité vide comme demandé
+    formData.append('hauteur', treeHeight);
+    
+    // Extraction des coordonnées GPS depuis le format affiché
+    let coords = gpsLocation.replace('Lat: ', '').replace(' Lng: ', ',');
+    formData.append('localisation', coords);
+    
+    // Ajout de l'image si disponible
+    if (fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]);
+    }
+    
+    // Envoi des données à l'API
+    fetch('http://192.168.0.121/api.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur réseau: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(data => {
+        console.log('Réponse API:', data);
+        
+        if (data.includes('✅')) {
+            // Succès
+            resetForm();
+            showToast('Arbre enregistré avec succès!');
+        } else {
+            // Erreur
+            showToast('Erreur: ' + data, true);
+        }
+        
         showLoading(false);
-        showToast('Arbre enregistré avec succès!');
-    }, 1500);
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showToast('Erreur de connexion au serveur. Veuillez réessayer.', true);
+        showLoading(false);
+    });
 });
 
 // Événement pour lancer le scan RFID
@@ -219,3 +305,45 @@ function animateSuccess(elementId) {
         element.classList.remove('success-animation');
     }, 1000);
 }
+
+// Fonction pour vérifier la connexion au serveur API
+function checkApiConnection() {
+    const apiStatus = document.getElementById('apiStatus');
+    apiStatus.classList.remove('hidden');
+    
+    // Tentative de connexion simple à l'API (HEAD request)
+    fetch('http://192.168.0.121/api.php', {
+        method: 'HEAD'
+    })
+    .then(response => {
+        if (response.ok) {
+            apiStatus.innerHTML = `
+                <div class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Connecté au serveur</span>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                apiStatus.classList.add('hidden');
+            }, 3000);
+        } else {
+            throw new Error('Serveur non disponible');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur de connexion API:', error);
+        apiStatus.innerHTML = `
+            <div class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span>Impossible de se connecter au serveur</span>
+            </div>
+        `;
+    });
+}
+
+// Vérifier la connexion API au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser l'interface
+    checkApiConnection();
+});
