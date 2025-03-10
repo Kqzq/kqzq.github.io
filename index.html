@@ -9,13 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <meta name="theme-color" content="#4CAF50">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    
-    <!-- Polyfills pour anciennes versions d'Android -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.12.1/polyfill.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.6.2/fetch.min.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-green-100 to-green-300 flex justify-center items-center">
     <div class="container mx-auto px-4 py-8 max-w-2xl">
@@ -124,29 +118,18 @@
 
     <script src="app.js"></script>
     <script>
-        // Enregistrement du service worker avec gestion d'erreur améliorée
-        function registerServiceWorker() {
-            try {
-                if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => {
-                        navigator.serviceWorker.register('sw.js')
-                            .then(registration => {
-                                console.log('Service Worker enregistré avec succès:', registration);
-                            })
-                            .catch(error => {
-                                console.log('Échec d\'enregistrement du Service Worker:', error);
-                                // L'application fonctionne toujours sans service worker
-                            });
+        // Enregistrement du service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker enregistré avec succès:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Échec d\'enregistrement du Service Worker:', error);
                     });
-                }
-            } catch (e) {
-                console.log('Erreur lors de l\'enregistrement du Service Worker:', e);
-                // Application continue sans service worker
-            }
+            });
         }
-        
-        // Essayer d'enregistrer le service worker
-        registerServiceWorker();
 
         // Gestion du statut online/offline
         function updateOnlineStatus() {

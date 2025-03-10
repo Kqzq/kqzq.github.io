@@ -7,77 +7,40 @@ const UUID = {
 let device;
 let characteristic;
 
-// Connexion au capteur RFID et remplissage du champ RFID TAG avec gestion d'erreurs améliorée
-function connectBLE() {
-    // Vérifier si la fonctionnalité Bluetooth est disponible
-    if (!navigator.bluetooth) {
-        showToast('Bluetooth non supporté sur cet appareil. Entrez le code manuellement.', true);
-        // Rendre le champ RFID éditable pour entrée manuelle
-        const rfidInput = document.getElementById('rfidTag');
-        rfidInput.readOnly = false;
-        rfidInput.placeholder = "Entrez le code manuellement";
-        rfidInput.classList.remove('bg-gray-100');
-        rfidInput.classList.add('bg-white');
-        return;
-    }
-    
-    showLoading(true, 'Connexion au lecteur RFID...');
-    
-    // Utiliser des promesses au lieu de async/await pour meilleure compatibilité
-    navigator.bluetooth.requestDevice({
-        filters: [{ name: 'GreenTrack-V2' }],
-        optionalServices: [UUID.SERVICE]
-    })
-    .then(function(dev) {
-        device = dev;
-        return device.gatt.connect();
-    })
-    .then(function(server) {
-        return server.getPrimaryService(UUID.SERVICE);
-    })
-    .then(function(service) {
-        return service.getCharacteristic(UUID.CHARACTERISTIC);
-    })
-    .then(function(char) {
-        characteristic = char;
-        return characteristic.startNotifications();
-    })
-    .then(function() {
-        characteristic.addEventListener('characteristicvaluechanged', function(event) {
-            try {
-                // Utiliser une méthode plus compatible pour décoder
-                let value = event.target.value;
-                let uid = "";
-                for (let i = 0; i < value.byteLength; i++) {
-                    uid += String.fromCharCode(value.getUint8(i));
-                }
-                
-                document.getElementById('rfidTag').value = uid;
-                document.getElementById('clearRfid').classList.remove("hidden");
-                
-                // Animation pour montrer que le scan a réussi
-                animateSuccess('rfidTag');
-                showToast('Tag RFID détecté avec succès!');
-            } catch (e) {
-                console.error('Erreur de décodage:', e);
-            }
+// Connexion au capteur RFID et remplissage du champ RFID TAG
+async function connectBLE() {
+    try {
+        showLoading(true, 'Connexion au lecteur RFID...');
+        
+        device = await navigator.bluetooth.requestDevice({
+            filters: [{ name: 'GreenTrack-V2' }],
+            optionalServices: [UUID.SERVICE]
+        });
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(UUID.SERVICE);
+        characteristic = await service.getCharacteristic(UUID.CHARACTERISTIC);
+
+        await characteristic.startNotifications();
+
+        characteristic.addEventListener('characteristicvaluechanged', event => {
+            const uid = new TextDecoder().decode(event.target.value);
+            document.getElementById('rfidTag').value = uid;
+            document.getElementById('clearRfid').classList.remove("hidden");
+            
+            // Animation pour montrer que le scan a réussi
+            animateSuccess('rfidTag');
+            showToast('Tag RFID détecté avec succès!');
         });
         
         showLoading(false);
         showToast('Connexion au lecteur RFID réussie');
-    })
-    .catch(function(error) {
+
+    } catch (error) {
         console.error('Erreur:', error);
         showLoading(false);
-        showToast('Erreur de connexion au lecteur RFID. Entrée manuelle possible.', true);
-        
-        // Permettre l'entrée manuelle en cas d'échec
-        const rfidInput = document.getElementById('rfidTag');
-        rfidInput.readOnly = false;
-        rfidInput.placeholder = "Entrez le code manuellement";
-        rfidInput.classList.remove('bg-gray-100');
-        rfidInput.classList.add('bg-white');
-    });
+        showToast('Erreur de connexion au lecteur RFID', true);
+    }
 }
 
 // Suppression du scan RFID
