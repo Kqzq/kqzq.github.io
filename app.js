@@ -307,6 +307,6 @@ function checkApiConnection() {
 
 // Vérifier la connexion API au chargement
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialiser l'interface
+    // Initialiser l'interfaceS
     checkApiConnection();
 });
