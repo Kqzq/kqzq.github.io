@@ -151,11 +151,12 @@ document.getElementById('submitBtn').addEventListener('click', () => {
     const fileInput = document.getElementById('treePhoto');
     
     // Création d'un objet FormData pour l'envoi multipart (nécessaire pour l'image)
+// Dans app.js, modifiez la section où vous créez le FormData :
     const formData = new FormData();
     formData.append('espece', treeType);
     formData.append('rfid', rfidTag);
     formData.append('date_plantation', treeDate);
-    formData.append('humidite', ''); // Champ humidité vide comme demandé
+    formData.append('humidite', '0'); // Remplacez la chaîne vide par '0' ou une autre valeur par défaut
     formData.append('hauteur', treeHeight);
     
     // Extraction des coordonnées GPS depuis le format affiché
