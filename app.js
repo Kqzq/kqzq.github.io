@@ -151,17 +151,26 @@ document.getElementById('submitBtn').addEventListener('click', () => {
     const fileInput = document.getElementById('treePhoto');
     
     // Création d'un objet FormData pour l'envoi multipart (nécessaire pour l'image)
-// Dans app.js, modifiez la section où vous créez le FormData :
     const formData = new FormData();
     formData.append('espece', treeType);
     formData.append('rfid', rfidTag);
     formData.append('date_plantation', treeDate);
-    formData.append('humidite', '0'); // Remplacez la chaîne vide par '0' ou une autre valeur par défaut
+    formData.append('humidite', '0'); // Valeur par défaut pour éviter l'erreur de type décimal
     formData.append('hauteur', treeHeight);
     
     // Extraction des coordonnées GPS depuis le format affiché
+    // S'assurer qu'il n'y a qu'une seule virgule pour séparer latitude et longitude
     let coords = gpsLocation.replace('Lat: ', '').replace(' Lng: ', ',');
+    // Vérifier s'il y a plus d'une virgule et la corriger si nécessaire
+    if (coords.split(',').length > 2) {
+        // Extraire uniquement les deux nombres (latitude et longitude)
+        const coordParts = coords.match(/-?\d+(\.\d+)?/g);
+        if (coordParts && coordParts.length >= 2) {
+            coords = coordParts[0] + ',' + coordParts[1];
+        }
+    }
     formData.append('localisation', coords);
+    console.log('Coordonnées envoyées:', coords);
     
     // Ajout de l'image si disponible
     if (fileInput.files.length > 0) {
@@ -308,6 +317,6 @@ function checkApiConnection() {
 
 // Vérifier la connexion API au chargement
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialiser l'interfaceS
+    // Initialiser l'interface
     checkApiConnection();
 });
