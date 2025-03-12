@@ -776,13 +776,16 @@ function createErrorButton() {
 }
 
 // Créer et ajouter le bouton de logs
+// Remplacez la fonction createLogsButton par celle-ci
 function createLogsButton() {
+    console.log("Création du bouton de logs...");
     if (!document.getElementById('logsBtn')) {
         const logsBtn = document.createElement('button');
         logsBtn.id = 'logsBtn';
         logsBtn.className = 'fixed bottom-20 right-4 bg-green-600 text-white p-3 rounded-full shadow-lg hover:bg-green-700 transition-all flex items-center justify-center';
         logsBtn.style.width = '58px';
         logsBtn.style.height = '58px';
+        logsBtn.style.zIndex = '50';
         logsBtn.innerHTML = `
             <div class="animate-pulse-slow">
                 <i class="fas fa-clipboard-list text-xl"></i>
@@ -790,21 +793,27 @@ function createLogsButton() {
             <span class="log-count absolute -top-2 -right-2 bg-white text-green-600 rounded-full text-xs font-bold w-6 h-6 flex items-center justify-center">0</span>
         `;
         
-        // Ajouter un effet de rebond au survol
-        logsBtn.addEventListener('mouseenter', () => {
-            logsBtn.classList.add('animate-bounce-once');
-            setTimeout(() => {
-                logsBtn.classList.remove('animate-bounce-once');
-            }, 1000);
-        });
-        
         logsBtn.addEventListener('click', showLogsModal);
         document.body.appendChild(logsBtn);
         
+        console.log("Bouton de logs créé avec succès");
         // Mettre à jour le compteur
         updateLogButtonCount();
+    } else {
+        console.log("Le bouton de logs existe déjà");
     }
 }
+
+// Appelez cette fonction directement à la fin du fichier JS, en dehors de tout événement
+document.addEventListener('DOMContentLoaded', function() {
+    // Autres initialisations...
+    
+    // Appel explicite pour créer le bouton de logs
+    createLogsButton();
+});
+
+// Ou même, ajoutez cette ligne tout à la fin du fichier pour un appel immédiat
+setTimeout(createLogsButton, 1000);
 
 // Vérifier la connexion API au chargement
 document.addEventListener('DOMContentLoaded', function() {
