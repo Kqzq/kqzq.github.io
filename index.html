@@ -107,6 +107,7 @@
             <!-- Footer -->
             <div class="mt-6 text-center text-sm text-gray-500">
                 <p>GreenTrack v2.0 - Code tablette: 2729</p>
+                <p class="text-xs mt-1 text-green-600"><i class="fas fa-bug mr-1"></i> Mode développeur actif</p>
             </div>
         </div>
     </div>
@@ -116,7 +117,15 @@
         <span id="toastMessage"></span>
     </div>
     
-    <!-- Le bouton d'historique des erreurs et la modal seront ajoutés par JavaScript -->
+    <!-- Groupe de boutons flottants -->
+    <div class="floating-buttons-group">
+        <button id="logsBtn" class="bg-green-600 text-white p-3 rounded-full shadow-lg hover:bg-green-700 transition-all flex items-center justify-center animate-float" style="width: 58px; height: 58px;">
+            <div class="animate-pulse-slow">
+                <i class="fas fa-clipboard-list text-xl"></i>
+            </div>
+            <span class="log-count absolute -top-2 -right-2 bg-white text-green-600 rounded-full text-xs font-bold w-6 h-6 flex items-center justify-center">0</span>
+        </button>
+    </div>
 
     <script src="app.js"></script>
     <script>
@@ -156,34 +165,36 @@
         
         // Initialiser le statut
         updateOnlineStatus();
-
-        // Fonction pour afficher un toast
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
+        
+        // Animation des éléments au défilement
+        function animateOnScroll() {
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
             
-            toastMessage.textContent = message;
-            toast.classList.remove('hidden');
-            
-            if (isError) {
-                toast.classList.remove('bg-green-600');
-                toast.classList.add('bg-red-600');
-            } else {
-                toast.classList.remove('bg-red-600');
-                toast.classList.add('bg-green-600');
-            }
-            
-            setTimeout(() => {
-                toast.classList.add('opacity-100');
-            }, 10);
-            
-            setTimeout(() => {
-                toast.classList.remove('opacity-100');
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                }, 300);
-            }, 3000);
+            animatedElements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (elementPosition < windowHeight - 50) {
+                    element.classList.add('animate-fade-in');
+                    element.classList.remove('opacity-0');
+                }
+            });
         }
+        
+        // Initialiser les éléments à animer
+        document.addEventListener('DOMContentLoaded', function() {
+            const elementsToAnimate = document.querySelectorAll('.bg-white.rounded-xl, .text-center.mb-6');
+            
+            elementsToAnimate.forEach(element => {
+                element.classList.add('animate-on-scroll', 'opacity-0');
+            });
+            
+            // Déclencher l'animation initiale
+            animateOnScroll();
+            
+            // Ajouter l'événement de défilement
+            window.addEventListener('scroll', animateOnScroll);
+        });
     </script>
 </body>
 </html>

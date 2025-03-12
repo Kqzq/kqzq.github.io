@@ -1,4 +1,4 @@
-/* Animations */
+/* Animations supplémentaires */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -31,6 +31,34 @@
     100% { background-color: #e6ffee; }
 }
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulseSlow {
+    0% { opacity: 0.7; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 0.7; transform: scale(0.98); }
+}
+
+@keyframes logAppear {
+    0% { transform: translateX(-10px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes floatButton {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes bounceOnce {
+    0%, 20%, 60%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    80% { transform: translateY(-5px); }
+}
+
 /* Classes d'animation */
 .animate-fade-in {
     animation: fadeIn 0.8s ease-in-out;
@@ -52,6 +80,26 @@
     animation: scaleIn 0.5s ease-out;
 }
 
+.animate-spin {
+    animation: spin 2s linear infinite;
+}
+
+.animate-pulse-slow {
+    animation: pulseSlow 2s infinite ease-in-out;
+}
+
+.animate-log-appear {
+    animation: logAppear 0.3s ease-out;
+}
+
+.animate-float {
+    animation: floatButton 3s infinite ease-in-out;
+}
+
+.animate-bounce-once {
+    animation: bounceOnce 1s ease-in-out;
+}
+
 /* Effets de hover et focus */
 input:focus, button:focus {
     outline: none;
@@ -66,6 +114,7 @@ input:focus, button:focus {
 /* Toast de notification */
 #toast {
     transition: opacity 0.3s ease-in-out;
+    z-index: 1000;
 }
 
 /* Transitions */
@@ -75,10 +124,60 @@ input:focus, button:focus {
     transition-duration: 300ms;
 }
 
+/* Animations pour les boutons flottants */
+#logsBtn {
+    transition: all 0.3s ease;
+    transform-origin: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#logsBtn:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Styles pour les modales */
+.modal-content {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.3s ease-out;
+}
+
+.modal-open .modal-content {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Style pour les logs */
+#logsContent .space-y-3 > div {
+    transition: all 0.2s ease;
+}
+
+#logsContent .space-y-3 > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Groupe de boutons flottants */
+.floating-buttons-group {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 40;
+}
+
 /* Pour les petits appareils */
 @media (max-width: 640px) {
     .container {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
+    }
+    
+    #logsBtn, #errorHistoryBtn {
+        width: 50px !important;
+        height: 50px !important;
     }
 }
