@@ -31,6 +31,17 @@
     100% { background-color: #e6ffee; }
 }
 
+@keyframes glowEffect {
+    0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+}
+
 /* Classes d'animation */
 .animate-fade-in {
     animation: fadeIn 0.8s ease-in-out;
@@ -50,6 +61,46 @@
 
 .animate-scale-in {
     animation: scaleIn 0.5s ease-out;
+}
+
+.animate-glow {
+    animation: glowEffect 2s infinite ease-in-out;
+}
+
+.animate-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Bouton d'accès */
+.access-button {
+    background: linear-gradient(135deg, #3182ce 0%, #38b2ac 100%);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.access-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(135deg, #2c5282 0%, #319795 100%);
+}
+
+.access-button:active {
+    transform: translateY(1px);
+}
+
+.access-button i {
+    margin-right: 0.5rem;
 }
 
 /* Effets de hover et focus */
