@@ -185,7 +185,7 @@ document.getElementById('submitBtn').addEventListener('click', () => {
     }
     
     // Envoi des données à l'API
-    fetch('https://lycee-polyvalent-costebelle1.pro.dns-orange.fr/api.php', {
+    fetch('https://greentrack.dns.army/api.php', {
         method: 'POST',
         body: formData
     })
@@ -296,7 +296,7 @@ function checkApiConnection() {
     apiStatus.classList.remove('hidden');
     
     // Tentative de connexion simple à l'API (HEAD request)
-    fetch('https://lycee-polyvalent-costebelle1.pro.dns-orange.fr/api.php', {
+    fetch('https://greentrack.dns.army/api.php', {
         method: 'HEAD'
     })
     .then(response => {
