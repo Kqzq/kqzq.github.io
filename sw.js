@@ -1,6 +1,5 @@
 // Version du cache
 const CACHE_NAME = 'greentrack-v1';
-
 // Fichiers à mettre en cache
 const FILES_TO_CACHE = [
   '/',
@@ -13,7 +12,6 @@ const FILES_TO_CACHE = [
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
 ];
-
 // Installation du Service Worker
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -25,7 +23,6 @@ self.addEventListener('install', event => {
       .then(() => self.skipWaiting())
   );
 });
-
 // Activation et nettoyage des anciens caches
 self.addEventListener('activate', event => {
   event.waitUntil(
@@ -40,34 +37,43 @@ self.addEventListener('activate', event => {
     }).then(() => self.clients.claim())
   );
 });
-
-// Stratégie de récupération : Cache First, puis Network
+// Stratégie de récupération : Network First, puis Cache
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        // Retourne la ressource du cache si elle existe
-        if (response) {
-          return response;
+        // Cloner la réponse car elle ne peut être utilisée qu'une fois
+        const responseToCache = response.clone();
+        
+        // Mettre à jour le cache avec la nouvelle réponse
+        if (response.status === 200 && response.type === 'basic') {
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache);
+            });
         }
         
-        // Sinon fait une requête réseau
-        return fetch(event.request)
-          .then(response => {
-            // Ne met pas en cache si la réponse n'est pas valide
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+        return response;
+      })
+      .catch(() => {
+        // En cas d'échec de la requête réseau, essayer depuis le cache
+        return caches.match(event.request)
+          .then(cachedResponse => {
+            // Retourner le contenu du cache s'il existe
+            if (cachedResponse) {
+              return cachedResponse;
             }
-
-            // Cloner la réponse car elle ne peut être utilisée qu'une fois
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
+            
+            // Si l'élément n'est pas dans le cache non plus, renvoyer une erreur appropriée
+            // pour les requêtes de pages HTML, on peut rediriger vers une page offline
+            if (event.request.headers.get('accept').includes('text/html')) {
+              return caches.match('/offline.html');  // Vous devriez créer cette page
+            }
+            
+            return new Response('Contenu non disponible', {
+              status: 404,
+              statusText: 'Not Found'
+            });
           });
       })
   );
