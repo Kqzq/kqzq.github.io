@@ -64,12 +64,6 @@ self.addEventListener('fetch', event => {
               return cachedResponse;
             }
             
-            // Si l'élément n'est pas dans le cache non plus, renvoyer une erreur appropriée
-            // pour les requêtes de pages HTML, on peut rediriger vers une page offline
-            if (event.request.headers.get('accept').includes('text/html')) {
-              return caches.match('/offline.html');  // Vous devriez créer cette page
-            }
-            
             return new Response('Contenu non disponible', {
               status: 404,
               statusText: 'Not Found'
