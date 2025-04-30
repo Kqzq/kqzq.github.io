@@ -96,9 +96,6 @@ function showErrorLogs() {
     }, 10);
 }
     
-    document.getElementById('errorLogModal').classList.remove('hidden');
-
-
 function closeErrorLogs() {
     document.getElementById('errorLogModal').classList.add('hidden');
 }
