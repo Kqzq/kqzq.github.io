@@ -123,11 +123,47 @@ async function connectBLE() {
         
         showLoading(false);
         showToast('Connexion au lecteur RFID réussie');
+        
+        // Afficher le bouton de déconnexion RFID après une connexion réussie
+        document.getElementById('disconnectBtn').classList.remove("hidden");
+        document.getElementById('scanBtn').classList.add("hidden");
 
     } catch (error) {
         console.error('Erreur:', error);
         showLoading(false);
         const errorMessage = 'Erreur de connexion au lecteur RFID';
+        showToast(errorMessage, true);
+        addErrorToHistory(errorMessage, error.toString());
+    }
+}
+
+// Fonction pour déconnecter le RFID
+async function disconnectBLE() {
+    try {
+        showLoading(true, 'Déconnexion du lecteur RFID...');
+        
+        if (characteristic) {
+            await characteristic.stopNotifications();
+            characteristic = null;
+        }
+        
+        if (device && device.gatt && device.gatt.connected) {
+            device.gatt.disconnect();
+        }
+        
+        device = null;
+        
+        showLoading(false);
+        showToast('Déconnexion du lecteur RFID réussie');
+        
+        // Cacher le bouton de déconnexion et afficher le bouton de scan
+        document.getElementById('disconnectBtn').classList.add("hidden");
+        document.getElementById('scanBtn').classList.remove("hidden");
+        
+    } catch (error) {
+        console.error('Erreur de déconnexion:', error);
+        showLoading(false);
+        const errorMessage = 'Erreur lors de la déconnexion du lecteur RFID';
         showToast(errorMessage, true);
         addErrorToHistory(errorMessage, error.toString());
     }
@@ -289,7 +325,10 @@ document.getElementById('submitBtn').addEventListener('click', () => {
             showToast('Arbre enregistré avec succès!');
         } else {
             // Erreur
-            showToast('Erreur: ' + data, true);
+            const errorMessage = 'Erreur: ' + data;
+            showToast(errorMessage, true);
+            // Ajouter l'erreur API à l'historique aussi
+            addErrorToHistory(errorMessage, `Réponse API: ${data}`);
         }
         
         showLoading(false);
@@ -306,6 +345,15 @@ document.getElementById('submitBtn').addEventListener('click', () => {
 // Événement pour lancer le scan RFID
 document.getElementById('scanBtn').addEventListener('click', connectBLE);
 
+// Événement pour déconnecter le RFID (à ajouter après la modification HTML)
+document.addEventListener('DOMContentLoaded', function() {
+    // S'assurer que l'élément existe avant d'ajouter l'écouteur d'événements
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', disconnectBLE);
+    }
+});
+
 // Réinitialiser le formulaire
 function resetForm() {
     document.getElementById('rfidTag').value = "";
@@ -316,6 +364,10 @@ function resetForm() {
     document.getElementById('treePhoto').value = "";
     document.getElementById('photoContainer').classList.add("hidden");
     document.getElementById('clearRfid').classList.add("hidden");
+    
+    // Masquer le bouton de déconnexion si visible et afficher le bouton de scan
+    document.getElementById('disconnectBtn').classList.add("hidden");
+    document.getElementById('scanBtn').classList.remove("hidden");
 }
 
 // Afficher un toast de notification
