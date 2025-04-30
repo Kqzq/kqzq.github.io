@@ -53,7 +53,6 @@ function updateErrorCounter() {
     }
 }
 
-// Modification de la fonction showErrorLogs pour améliorer le défilement
 function showErrorLogs() {
     const modalContent = document.getElementById('errorLogContent');
     modalContent.innerHTML = '';
@@ -95,7 +94,7 @@ function showErrorLogs() {
         modalContent.scrollTop = 0;
     }, 10);
 }
-    
+
 function closeErrorLogs() {
     document.getElementById('errorLogModal').classList.add('hidden');
 }
@@ -360,15 +359,6 @@ document.getElementById('submitBtn').addEventListener('click', () => {
 // Événement pour lancer le scan RFID
 document.getElementById('scanBtn').addEventListener('click', connectBLE);
 
-// Événement pour déconnecter le RFID (à ajouter après la modification HTML)
-document.addEventListener('DOMContentLoaded', function() {
-    // S'assurer que l'élément existe avant d'ajouter l'écouteur d'événements
-    const disconnectBtn = document.getElementById('disconnectBtn');
-    if (disconnectBtn) {
-        disconnectBtn.addEventListener('click', disconnectBLE);
-    }
-});
-
 // Réinitialiser le formulaire
 function resetForm() {
     document.getElementById('rfidTag').value = "";
@@ -481,11 +471,27 @@ function checkApiConnection() {
 
 // Vérifier la connexion API au chargement
 document.addEventListener('DOMContentLoaded', function() {
+    // S'assurer que le modal d'erreur est masqué au chargement
+    const errorLogModal = document.getElementById('errorLogModal');
+    if (errorLogModal) {
+        errorLogModal.classList.add('hidden');
+    }
+    
     // Charger l'historique des erreurs
     loadErrorHistory();
+    
     // Initialiser l'interface
     checkApiConnection();
     
     // Ajouter l'event listener pour le bouton de logs
-    document.getElementById('errorLogBtn').addEventListener('click', showErrorLogs);
+    const errorLogBtn = document.getElementById('errorLogBtn');
+    if (errorLogBtn) {
+        errorLogBtn.addEventListener('click', showErrorLogs);
+    }
+    
+    // Ajouter l'event listener pour le bouton de déconnexion RFID
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', disconnectBLE);
+    }
 });
