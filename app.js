@@ -53,6 +53,7 @@ function updateErrorCounter() {
     }
 }
 
+// Modification de la fonction showErrorLogs pour améliorer le défilement
 function showErrorLogs() {
     const modalContent = document.getElementById('errorLogContent');
     modalContent.innerHTML = '';
@@ -60,6 +61,10 @@ function showErrorLogs() {
     if (errorHistory.length === 0) {
         modalContent.innerHTML = '<p class="text-gray-500 text-center py-4">Aucune erreur enregistrée</p>';
     } else {
+        // Créer un conteneur pour les erreurs
+        const errorsContainer = document.createElement('div');
+        errorsContainer.className = 'pb-2'; // Padding bottom pour éviter que le dernier élément soit coupé
+        
         errorHistory.forEach((error, index) => {
             const errorElement = document.createElement('div');
             errorElement.className = 'border-b border-gray-200 py-3 px-4 ' + (index % 2 === 0 ? 'bg-gray-50' : '');
@@ -70,19 +75,29 @@ function showErrorLogs() {
                 </div>
                 ${error.details ? `<div class="text-sm text-gray-700 mt-1">${error.details}</div>` : ''}
             `;
-            modalContent.appendChild(errorElement);
+            errorsContainer.appendChild(errorElement);
         });
+        
+        modalContent.appendChild(errorsContainer);
         
         // Bouton pour effacer les logs
         const clearButton = document.createElement('button');
-        clearButton.className = 'mt-4 w-full bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-all';
+        clearButton.className = 'mt-4 w-full bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-all sticky bottom-0';
         clearButton.innerHTML = '<i class="fas fa-trash-alt mr-2"></i> Effacer tous les logs';
         clearButton.onclick = clearErrorLogs;
         modalContent.appendChild(clearButton);
     }
     
     document.getElementById('errorLogModal').classList.remove('hidden');
+    
+    // Forcer le rafraîchissement du défilement après l'affichage du modal
+    setTimeout(() => {
+        modalContent.scrollTop = 0;
+    }, 10);
 }
+    
+    document.getElementById('errorLogModal').classList.remove('hidden');
+
 
 function closeErrorLogs() {
     document.getElementById('errorLogModal').classList.add('hidden');

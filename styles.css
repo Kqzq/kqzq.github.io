@@ -126,10 +126,32 @@ input:focus, button:focus {
     transition-duration: 300ms;
 }
 
+/* Modal des logs d'erreur - Correction pour le défilement */
+#errorLogModal {
+    z-index: 50;
+}
+
+#errorLogContent {
+    overflow-y: auto !important;
+    max-height: 60vh !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
 /* Pour les petits appareils */
 @media (max-width: 640px) {
     .container {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
+    }
+    
+    /* Améliorer l'affichage du modal des logs sur petits écrans */
+    #errorLogModal .bg-white {
+        max-height: 90vh;
+        margin: 1rem;
+    }
+    
+    #errorLogContent {
+        max-height: 50vh !important;
     }
 }
