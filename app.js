@@ -286,6 +286,9 @@ document.getElementById('submitBtn').addEventListener('click', () => {
     formData.append('humidite', '0'); // Valeur par défaut pour éviter l'erreur de type décimal
     formData.append('hauteur', treeHeight);
     
+    // Correction pour l'erreur d'API - Ajout du mode_humidite
+    formData.append('mode_humidite', 'manuel'); // Définir 'manuel' comme valeur par défaut
+    
     // Extraction des coordonnées GPS depuis le format affiché
     // S'assurer qu'il n'y a qu'une seule virgule pour séparer latitude et longitude
     let coords = gpsLocation.replace('Lat: ', '').replace(' Lng: ', ',');
