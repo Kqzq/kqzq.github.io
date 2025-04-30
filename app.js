@@ -10,6 +10,91 @@ let errorHistory = [];
 // Nombre maximum d'erreurs à conserver
 const MAX_ERROR_HISTORY = 20;
 
+// Fonctions pour la gestion des logs d'erreurs
+function addErrorToHistory(errorMessage, details = '') {
+    const timestamp = new Date().toLocaleString();
+    errorHistory.unshift({
+        timestamp: timestamp,
+        message: errorMessage,
+        details: details
+    });
+    
+    // Limiter la taille de l'historique
+    if (errorHistory.length > MAX_ERROR_HISTORY) {
+        errorHistory.pop();
+    }
+    
+    // Sauvegarder dans le stockage local
+    saveErrorHistory();
+    
+    // Mettre à jour le compteur d'erreurs sur le bouton
+    updateErrorCounter();
+}
+
+function saveErrorHistory() {
+    localStorage.setItem('errorHistory', JSON.stringify(errorHistory));
+}
+
+function loadErrorHistory() {
+    const saved = localStorage.getItem('errorHistory');
+    if (saved) {
+        errorHistory = JSON.parse(saved);
+        updateErrorCounter();
+    }
+}
+
+function updateErrorCounter() {
+    const counter = document.getElementById('errorCounter');
+    if (counter && errorHistory.length > 0) {
+        counter.textContent = errorHistory.length;
+        counter.classList.remove('hidden');
+    } else if (counter) {
+        counter.classList.add('hidden');
+    }
+}
+
+function showErrorLogs() {
+    const modalContent = document.getElementById('errorLogContent');
+    modalContent.innerHTML = '';
+    
+    if (errorHistory.length === 0) {
+        modalContent.innerHTML = '<p class="text-gray-500 text-center py-4">Aucune erreur enregistrée</p>';
+    } else {
+        errorHistory.forEach((error, index) => {
+            const errorElement = document.createElement('div');
+            errorElement.className = 'border-b border-gray-200 py-3 px-4 ' + (index % 2 === 0 ? 'bg-gray-50' : '');
+            errorElement.innerHTML = `
+                <div class="flex justify-between">
+                    <span class="font-medium text-red-600">${error.message}</span>
+                    <span class="text-xs text-gray-500">${error.timestamp}</span>
+                </div>
+                ${error.details ? `<div class="text-sm text-gray-700 mt-1">${error.details}</div>` : ''}
+            `;
+            modalContent.appendChild(errorElement);
+        });
+        
+        // Bouton pour effacer les logs
+        const clearButton = document.createElement('button');
+        clearButton.className = 'mt-4 w-full bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-all';
+        clearButton.innerHTML = '<i class="fas fa-trash-alt mr-2"></i> Effacer tous les logs';
+        clearButton.onclick = clearErrorLogs;
+        modalContent.appendChild(clearButton);
+    }
+    
+    document.getElementById('errorLogModal').classList.remove('hidden');
+}
+
+function closeErrorLogs() {
+    document.getElementById('errorLogModal').classList.add('hidden');
+}
+
+function clearErrorLogs() {
+    errorHistory = [];
+    saveErrorHistory();
+    updateErrorCounter();
+    showErrorLogs(); // Rafraîchir l'affichage
+}
+
 // Connexion au capteur RFID et remplissage du champ RFID TAG
 async function connectBLE() {
     try {
@@ -333,5 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadErrorHistory();
     // Initialiser l'interface
     checkApiConnection();
-
+    
+    // Ajouter l'event listener pour le bouton de logs
+    document.getElementById('errorLogBtn').addEventListener('click', showErrorLogs);
 });
