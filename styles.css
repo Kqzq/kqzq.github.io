@@ -73,6 +73,11 @@
     animation: shimmer 1.5s infinite;
 }
 
+/* Animation de pulsation subtile */
+.animate-pulse-subtle {
+    animation: pulse 2s infinite;
+}
+
 /* Bouton d'accès */
 .access-button {
     background: linear-gradient(135deg, #3182ce 0%, #38b2ac 100%);
@@ -101,6 +106,19 @@
 
 .access-button i {
     margin-right: 0.5rem;
+}
+
+/* Styles pour le mode lecture */
+#readResults {
+    transition: all 0.3s ease-in-out;
+}
+
+#scanMessage {
+    transition: all 0.3s ease-in-out;
+}
+
+.mode-selector button {
+    transition: all 0.2s ease-in-out;
 }
 
 /* Effets de hover et focus */
@@ -153,5 +171,14 @@ input:focus, button:focus {
     
     #errorLogContent {
         max-height: 50vh !important;
+    }
+    
+    /* Adapter le sélecteur de mode pour les petits écrans */
+    .inline-flex {
+        width: 100%;
+    }
+    
+    .inline-flex button {
+        flex: 1;
     }
 }

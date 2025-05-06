@@ -2,9 +2,12 @@
 const UUID = {
     SERVICE: '12345678-1234-5678-1234-56789abcdef0',
     CHARACTERISTIC: 'abcdef00-1234-5678-1234-56789abcdef0'
-};// Variables globales
+};
+
+// Variables globales
 let device;
 let characteristic;
+let currentMode = 'add'; // 'add' ou 'read'
 // Tableau pour stocker l'historique des erreurs
 let errorHistory = [];
 // Nombre maximum d'erreurs à conserver
@@ -107,7 +110,7 @@ function clearErrorLogs() {
 }
 
 // Connexion au capteur RFID et remplissage du champ RFID TAG
-async function connectBLE() {
+async function connectBLE(forReading = false) {
     try {
         showLoading(true, 'Connexion au lecteur RFID...');
         
@@ -124,20 +127,41 @@ async function connectBLE() {
 
         characteristic.addEventListener('characteristicvaluechanged', event => {
             const uid = new TextDecoder().decode(event.target.value);
-            document.getElementById('rfidTag').value = uid;
-            document.getElementById('clearRfid').classList.remove("hidden");
             
-            // Animation pour montrer que le scan a réussi
-            animateSuccess('rfidTag');
-            showToast('Tag RFID détecté avec succès!');
+            if (currentMode === 'add') {
+                document.getElementById('rfidTag').value = uid;
+                document.getElementById('clearRfid').classList.remove("hidden");
+                // Animation pour montrer que le scan a réussi
+                animateSuccess('rfidTag');
+                showToast('Tag RFID détecté avec succès!');
+            } else {
+                document.getElementById('rfidTagRead').value = uid;
+                document.getElementById('clearRfidRead').classList.remove("hidden");
+                document.getElementById('scanMessage').classList.add('hidden');
+                
+                // Animation pour montrer que le scan a réussi
+                animateSuccess('rfidTagRead');
+                showToast('Tag RFID détecté avec succès! Chargement des données...');
+                
+                // Charger les données de l'arbre
+                loadTreeData(uid);
+                
+                // Afficher les résultats
+                document.getElementById('readResults').classList.remove('hidden');
+            }
         });
         
         showLoading(false);
         showToast('Connexion au lecteur RFID réussie');
         
         // Afficher le bouton de déconnexion RFID après une connexion réussie
-        document.getElementById('disconnectBtn').classList.remove("hidden");
-        document.getElementById('scanBtn').classList.add("hidden");
+        if (currentMode === 'add') {
+            document.getElementById('disconnectBtn').classList.remove("hidden");
+            document.getElementById('scanBtn').classList.add("hidden");
+        } else {
+            document.getElementById('disconnectBtnRead').classList.remove("hidden");
+            document.getElementById('scanBtnRead').classList.add("hidden");
+        }
 
     } catch (error) {
         console.error('Erreur:', error);
@@ -168,8 +192,13 @@ async function disconnectBLE() {
         showToast('Déconnexion du lecteur RFID réussie');
         
         // Cacher le bouton de déconnexion et afficher le bouton de scan
-        document.getElementById('disconnectBtn').classList.add("hidden");
-        document.getElementById('scanBtn').classList.remove("hidden");
+        if (currentMode === 'add') {
+            document.getElementById('disconnectBtn').classList.add("hidden");
+            document.getElementById('scanBtn').classList.remove("hidden");
+        } else {
+            document.getElementById('disconnectBtnRead').classList.add("hidden");
+            document.getElementById('scanBtnRead').classList.remove("hidden");
+        }
         
     } catch (error) {
         console.error('Erreur de déconnexion:', error);
@@ -180,10 +209,162 @@ async function disconnectBLE() {
     }
 }
 
-// Suppression du scan RFID
+// Chargement des données de l'arbre
+async function loadTreeData(rfid) {
+    try {
+        showLoading(true, 'Chargement des données...');
+        
+        // Récupération des données depuis l'API
+        const response = await fetch(`https://greentrack.dns.army/api.php?action=read&rfid=${rfid}`);
+        
+        if (!response.ok) {
+            throw new Error('Erreur réseau: ' + response.status);
+        }
+        
+        const data = await response.json();
+        
+        if (data.status === 'error') {
+            throw new Error(data.message || 'Erreur lors de la récupération des données');
+        }
+        
+        // Mise à jour de l'interface avec les données récupérées
+        document.getElementById('treeTypeRead').textContent = data.espece || '-';
+        document.getElementById('treeHeightRead').textContent = data.hauteur ? `${data.hauteur} cm` : '-';
+        document.getElementById('treeDateRead').textContent = formatDate(data.date_plantation) || '-';
+        document.getElementById('locationRead').textContent = formatLocation(data.localisation) || '-';
+        document.getElementById('humidityRead').textContent = data.humidite ? `${data.humidite}%` : '-';
+        document.getElementById('rfidInfoRead').textContent = data.rfid || rfid;
+        
+        // Affichage de l'image si disponible
+        if (data.image_url) {
+            document.getElementById('photoPreviewRead').src = data.image_url;
+            document.getElementById('treePhotoRead').classList.remove('hidden');
+        } else {
+            document.getElementById('treePhotoRead').classList.add('hidden');
+        }
+        
+        // Configurer les boutons de carte si des coordonnées sont disponibles
+        if (data.localisation) {
+            const coords = parseLocationString(data.localisation);
+            if (coords) {
+                document.getElementById('viewMapBtn').onclick = () => {
+                    window.open(`https://www.google.com/maps?q=${coords.lat},${coords.lng}`, '_blank');
+                };
+                
+                document.getElementById('directionsBtn').onclick = () => {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`, '_blank');
+                };
+                
+                document.getElementById('mapMessage').textContent = 'Carte disponible';
+            } else {
+                document.getElementById('mapMessage').textContent = 'Coordonnées invalides';
+            }
+        } else {
+            document.getElementById('mapMessage').textContent = 'Localisation non disponible';
+        }
+        
+        showLoading(false);
+        showToast('Données chargées avec succès');
+        
+    } catch (error) {
+        console.error('Erreur:', error);
+        showLoading(false);
+        const errorMessage = 'Erreur de chargement des données';
+        showToast(errorMessage, true);
+        addErrorToHistory(errorMessage, error.toString());
+        
+        // Réinitialiser les champs en cas d'erreur
+        resetReadFields();
+    }
+}
+
+// Fonctions utilitaires pour le mode lecture
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+function formatLocation(locationString) {
+    if (!locationString) return '-';
+    
+    const coords = parseLocationString(locationString);
+    if (coords) {
+        return `Lat: ${coords.lat}, Lng: ${coords.lng}`;
+    }
+    
+    return locationString;
+}
+
+function parseLocationString(locationString) {
+    if (!locationString) return null;
+    
+    // Différents formats possibles
+    // Format 1: "48.8566,2.3522"
+    // Format 2: "Lat: 48.8566, Lng: 2.3522"
+    
+    try {
+        // Nettoyer la chaîne
+        let cleaned = locationString.replace('Lat: ', '').replace(' Lng: ', ',');
+        
+        // Extraire uniquement les nombres
+        const numbers = cleaned.match(/-?\d+(\.\d+)?/g);
+        if (numbers && numbers.length >= 2) {
+            return {
+                lat: parseFloat(numbers[0]),
+                lng: parseFloat(numbers[1])
+            };
+        }
+    } catch (e) {
+        console.error('Erreur de parsing des coordonnées:', e);
+    }
+    
+    return null;
+}
+
+function resetReadFields() {
+    document.getElementById('treeTypeRead').textContent = '-';
+    document.getElementById('treeHeightRead').textContent = '-';
+    document.getElementById('treeDateRead').textContent = '-';
+    document.getElementById('locationRead').textContent = '-';
+    document.getElementById('humidityRead').textContent = '-';
+    document.getElementById('rfidInfoRead').textContent = '-';
+    document.getElementById('treePhotoRead').classList.add('hidden');
+    document.getElementById('mapMessage').textContent = 'Carte non disponible';
+}
+
+// Fonction pour rafraîchir les données
+function refreshTreeData() {
+    const rfid = document.getElementById('rfidTagRead').value;
+    if (rfid) {
+        loadTreeData(rfid);
+    } else {
+        showToast('Aucun tag RFID scanné', true);
+    }
+}
+
+// Suppression du scan RFID (Mode Ajout)
 document.getElementById('clearRfid').addEventListener('click', () => {
     document.getElementById('rfidTag').value = "";
     document.getElementById('clearRfid').classList.add("hidden");
+});
+
+// Suppression du scan RFID (Mode Lecture)
+document.getElementById('clearRfidRead').addEventListener('click', () => {
+    document.getElementById('rfidTagRead').value = "";
+    document.getElementById('clearRfidRead').classList.add("hidden");
+    document.getElementById('readResults').classList.add('hidden');
+    document.getElementById('scanMessage').classList.remove('hidden');
+    resetReadFields();
 });
 
 // Récupération GPS
@@ -356,8 +537,17 @@ document.getElementById('submitBtn').addEventListener('click', () => {
     });
 });
 
-// Événement pour lancer le scan RFID
-document.getElementById('scanBtn').addEventListener('click', connectBLE);
+// Événement pour lancer le scan RFID (Mode Ajout)
+document.getElementById('scanBtn').addEventListener('click', () => connectBLE(false));
+
+// Événement pour lancer le scan RFID (Mode Lecture)
+document.getElementById('scanBtnRead').addEventListener('click', () => connectBLE(true));
+
+// Événement pour la déconnexion RFID (Mode Lecture)
+document.getElementById('disconnectBtnRead').addEventListener('click', disconnectBLE);
+
+// Événement pour rafraîchir les données
+document.getElementById('refreshBtn').addEventListener('click', refreshTreeData);
 
 // Réinitialiser le formulaire
 function resetForm() {
@@ -469,6 +659,38 @@ function checkApiConnection() {
     });
 }
 
+// Gestion des modes (Ajout/Lecture)
+function switchMode(mode) {
+    currentMode = mode;
+    
+    if (mode === 'add') {
+        // Activer le mode Ajout
+        document.getElementById('addModeForm').classList.remove('hidden');
+        document.getElementById('readModeForm').classList.add('hidden');
+        document.getElementById('addModeBtn').classList.add('bg-green-600', 'text-white');
+        document.getElementById('addModeBtn').classList.remove('bg-transparent', 'text-gray-700');
+        document.getElementById('readModeBtn').classList.remove('bg-green-600', 'text-white');
+        document.getElementById('readModeBtn').classList.add('bg-transparent', 'text-gray-700');
+    } else {
+        // Activer le mode Lecture
+        document.getElementById('addModeForm').classList.add('hidden');
+        document.getElementById('readModeForm').classList.remove('hidden');
+        document.getElementById('readModeBtn').classList.add('bg-green-600', 'text-white');
+        document.getElementById('readModeBtn').classList.remove('bg-transparent', 'text-gray-700');
+        document.getElementById('addModeBtn').classList.remove('bg-green-600', 'text-white');
+        document.getElementById('addModeBtn').classList.add('bg-transparent', 'text-gray-700');
+    }
+    
+    // Si connecté au BLE, déconnecter lors du changement de mode
+    if (device && device.gatt && device.gatt.connected) {
+        disconnectBLE();
+    }
+}
+
+// Événements pour changer de mode
+document.getElementById('addModeBtn').addEventListener('click', () => switchMode('add'));
+document.getElementById('readModeBtn').addEventListener('click', () => switchMode('read'));
+
 // Vérifier la connexion API au chargement
 document.addEventListener('DOMContentLoaded', function() {
     // S'assurer que le modal d'erreur est masqué au chargement
@@ -489,9 +711,6 @@ document.addEventListener('DOMContentLoaded', function() {
         errorLogBtn.addEventListener('click', showErrorLogs);
     }
     
-    // Ajouter l'event listener pour le bouton de déconnexion RFID
-    const disconnectBtn = document.getElementById('disconnectBtn');
-    if (disconnectBtn) {
-        disconnectBtn.addEventListener('click', disconnectBLE);
-    }
-});
+    // Initialiser le mode par défaut (Ajout)
+    switchMode('add');
+});gatt.
