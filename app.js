@@ -110,7 +110,7 @@ function clearErrorLogs() {
 }
 
 // Connexion au capteur RFID et remplissage du champ RFID TAG
-async function connectBLE(forReading = false) {
+async function connectBLE() {
     try {
         showLoading(true, 'Connexion au lecteur RFID...');
         
@@ -352,219 +352,6 @@ function refreshTreeData() {
     }
 }
 
-// Suppression du scan RFID (Mode Ajout)
-document.getElementById('clearRfid').addEventListener('click', () => {
-    document.getElementById('rfidTag').value = "";
-    document.getElementById('clearRfid').classList.add("hidden");
-});
-
-// Suppression du scan RFID (Mode Lecture)
-document.getElementById('clearRfidRead').addEventListener('click', () => {
-    document.getElementById('rfidTagRead').value = "";
-    document.getElementById('clearRfidRead').classList.add("hidden");
-    document.getElementById('readResults').classList.add('hidden');
-    document.getElementById('scanMessage').classList.remove('hidden');
-    resetReadFields();
-});
-
-// Récupération GPS
-document.getElementById('getLocationBtn').addEventListener('click', () => {
-    showLoading(true, 'Récupération de la position...');
-    
-    navigator.geolocation.getCurrentPosition(position => {
-        const lat = position.coords.latitude.toFixed(6);
-        const lng = position.coords.longitude.toFixed(6);
-        document.getElementById('gpsLocation').value = `Lat: ${lat}, Lng: ${lng}`;
-        
-        animateSuccess('gpsLocation');
-        showLoading(false);
-        showToast('Position GPS récupérée');
-    }, (error) => {
-        showLoading(false);
-        console.error('Erreur GPS:', error);
-        const errorMessage = "Impossible d'obtenir la localisation.";
-        showToast(errorMessage, true);
-        addErrorToHistory(errorMessage, `Code: ${error.code}, Message: ${error.message}`);
-    }, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-    });
-});
-
-// Capture photo via la caméra
-document.getElementById('photoBtn').addEventListener('click', () => {
-    document.getElementById('treePhoto').click();
-});
-
-document.getElementById('treePhoto').addEventListener('change', function(event) {
-    if (event.target.files.length > 0) {
-        let src = URL.createObjectURL(event.target.files[0]);
-        document.getElementById('photoPreview').src = src;
-        document.getElementById('photoContainer').classList.remove("hidden");
-        
-        // Animation pour l'apparition de l'image
-        document.getElementById('photoPreview').classList.add('animate-scale-in');
-        setTimeout(() => {
-            document.getElementById('photoPreview').classList.remove('animate-scale-in');
-        }, 500);
-    }
-});
-
-// Suppression de la photo
-document.getElementById('clearPhoto').addEventListener('click', () => {
-    document.getElementById('treePhoto').value = "";
-    document.getElementById('photoContainer').classList.add("hidden");
-});
-
-// Fonction de validation du formulaire
-function validateForm() {
-    const rfidTag = document.getElementById('rfidTag').value;
-    const treeType = document.getElementById('treeType').value;
-    const treeHeight = document.getElementById('treeHeight').value;
-    const treeDate = document.getElementById('treeDate').value;
-    const gpsLocation = document.getElementById('gpsLocation').value;
-    
-    if (!rfidTag) {
-        showToast('Veuillez scanner un tag RFID', true);
-        return false;
-    }
-    
-    if (!treeType) {
-        showToast('Veuillez entrer l\'espèce d\'arbre', true);
-        document.getElementById('treeType').focus();
-        return false;
-    }
-    
-    if (!treeHeight) {
-        showToast('Veuillez entrer la hauteur de l\'arbre', true);
-        document.getElementById('treeHeight').focus();
-        return false;
-    }
-    
-    if (!treeDate) {
-        showToast('Veuillez sélectionner la date de plantation', true);
-        document.getElementById('treeDate').focus();
-        return false;
-    }
-    
-    if (!gpsLocation) {
-        showToast('Veuillez récupérer la position GPS', true);
-        return false;
-    }
-    
-    return true;
-}
-
-// Enregistrement des données
-document.getElementById('submitBtn').addEventListener('click', () => {
-    if (!validateForm()) return;
-    
-    showLoading(true, 'Enregistrement en cours...');
-
-    // Préparation des données pour l'API
-    const rfidTag = document.getElementById('rfidTag').value;
-    const treeType = document.getElementById('treeType').value;
-    const treeHeight = document.getElementById('treeHeight').value;
-    const treeDate = document.getElementById('treeDate').value;
-    const gpsLocation = document.getElementById('gpsLocation').value;
-    const fileInput = document.getElementById('treePhoto');
-    
-    // Création d'un objet FormData pour l'envoi multipart (nécessaire pour l'image)
-    const formData = new FormData();
-    formData.append('espece', treeType);
-    formData.append('rfid', rfidTag);
-    formData.append('date_plantation', treeDate);
-    formData.append('humidite', '0'); // Valeur par défaut pour éviter l'erreur de type décimal
-    formData.append('hauteur', treeHeight);
-    
-    // Correction pour l'erreur d'API - Ajout du mode_humidite
-    formData.append('mode_humidite', 'manuel'); // Définir 'manuel' comme valeur par défaut
-    
-    // Extraction des coordonnées GPS depuis le format affiché
-    // S'assurer qu'il n'y a qu'une seule virgule pour séparer latitude et longitude
-    let coords = gpsLocation.replace('Lat: ', '').replace(' Lng: ', ',');
-    // Vérifier s'il y a plus d'une virgule et la corriger si nécessaire
-    if (coords.split(',').length > 2) {
-        // Extraire uniquement les deux nombres (latitude et longitude)
-        const coordParts = coords.match(/-?\d+(\.\d+)?/g);
-        if (coordParts && coordParts.length >= 2) {
-            coords = coordParts[0] + ',' + coordParts[1];
-        }
-    }
-    formData.append('localisation', coords);
-    console.log('Coordonnées envoyées:', coords);
-    
-    // Ajout de l'image si disponible
-    if (fileInput.files.length > 0) {
-        formData.append('image', fileInput.files[0]);
-    }
-    
-    // Envoi des données à l'API
-    fetch('https://greentrack.dns.army/api.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Erreur réseau: ' + response.status);
-        }
-        return response.text();
-    })
-    .then(data => {
-        console.log('Réponse API:', data);
-        
-        if (data.includes('✅')) {
-            // Succès
-            resetForm();
-            showToast('Arbre enregistré avec succès!');
-        } else {
-            // Erreur
-            const errorMessage = 'Erreur: ' + data;
-            showToast(errorMessage, true);
-            // Ajouter l'erreur API à l'historique aussi
-            addErrorToHistory(errorMessage, `Réponse API: ${data}`);
-        }
-        
-        showLoading(false);
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        const errorMessage = 'Erreur de connexion au serveur. Veuillez réessayer.';
-        showToast(errorMessage, true);
-        addErrorToHistory(errorMessage, error.toString());
-        showLoading(false);
-    });
-});
-
-// Événement pour lancer le scan RFID (Mode Ajout)
-document.getElementById('scanBtn').addEventListener('click', () => connectBLE(false));
-
-// Événement pour lancer le scan RFID (Mode Lecture)
-document.getElementById('scanBtnRead').addEventListener('click', () => connectBLE(true));
-
-// Événement pour la déconnexion RFID (Mode Lecture)
-document.getElementById('disconnectBtnRead').addEventListener('click', disconnectBLE);
-
-// Événement pour rafraîchir les données
-document.getElementById('refreshBtn').addEventListener('click', refreshTreeData);
-
-// Réinitialiser le formulaire
-function resetForm() {
-    document.getElementById('rfidTag').value = "";
-    document.getElementById('treeType').value = "";
-    document.getElementById('treeHeight').value = "";
-    document.getElementById('treeDate').value = "";
-    document.getElementById('gpsLocation').value = "";
-    document.getElementById('treePhoto').value = "";
-    document.getElementById('photoContainer').classList.add("hidden");
-    document.getElementById('clearRfid').classList.add("hidden");
-    
-    // Masquer le bouton de déconnexion si visible et afficher le bouton de scan
-    document.getElementById('disconnectBtn').classList.add("hidden");
-    document.getElementById('scanBtn').classList.remove("hidden");
-}
-
 // Afficher un toast de notification
 function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
@@ -687,30 +474,210 @@ function switchMode(mode) {
     }
 }
 
-// Événements pour changer de mode
-document.getElementById('addModeBtn').addEventListener('click', () => switchMode('add'));
-document.getElementById('readModeBtn').addEventListener('click', () => switchMode('read'));
-
-// Vérifier la connexion API au chargement
+// Attendre que le DOM soit complètement chargé avant d'initialiser les événements
 document.addEventListener('DOMContentLoaded', function() {
-    // S'assurer que le modal d'erreur est masqué au chargement
-    const errorLogModal = document.getElementById('errorLogModal');
-    if (errorLogModal) {
-        errorLogModal.classList.add('hidden');
-    }
+    console.log('DOM loaded');
     
-    // Charger l'historique des erreurs
-    loadErrorHistory();
+    // Initialisation des événements de mode
+    document.getElementById('addModeBtn').addEventListener('click', function() {
+        console.log('Switching to add mode');
+        switchMode('add');
+    });
     
-    // Initialiser l'interface
-    checkApiConnection();
+    document.getElementById('readModeBtn').addEventListener('click', function() {
+        console.log('Switching to read mode');
+        switchMode('read');
+    });
     
-    // Ajouter l'event listener pour le bouton de logs
+    // Événements pour le scan RFID
+    document.getElementById('scanBtn').addEventListener('click', function() {
+        console.log('Scanning in add mode');
+        connectBLE();
+    });
+    
+    document.getElementById('scanBtnRead').addEventListener('click', function() {
+        console.log('Scanning in read mode');
+        connectBLE();
+    });
+    
+    // Événements pour les boutons de déconnexion
+    document.getElementById('disconnectBtn').addEventListener('click', disconnectBLE);
+    document.getElementById('disconnectBtnRead').addEventListener('click', disconnectBLE);
+    
+    // Événement pour le bouton de rafraîchissement
+    document.getElementById('refreshBtn').addEventListener('click', refreshTreeData);
+    
+    // Événements pour l'ajout d'arbre
+    document.getElementById('clearRfid').addEventListener('click', function() {
+        document.getElementById('rfidTag').value = "";
+        document.getElementById('clearRfid').classList.add("hidden");
+    });
+    
+    // Événements pour le mode lecture
+    document.getElementById('clearRfidRead').addEventListener('click', function() {
+        document.getElementById('rfidTagRead').value = "";
+        document.getElementById('clearRfidRead').classList.add("hidden");
+        document.getElementById('readResults').classList.add('hidden');
+        document.getElementById('scanMessage').classList.remove('hidden');
+        resetReadFields();
+    });
+    
+    // Événements pour la géolocalisation
+    document.getElementById('getLocationBtn').addEventListener('click', function() {
+        showLoading(true, 'Récupération de la position...');
+        
+        navigator.geolocation.getCurrentPosition(position => {
+            const lat = position.coords.latitude.toFixed(6);
+            const lng = position.coords.longitude.toFixed(6);
+            document.getElementById('gpsLocation').value = `Lat: ${lat}, Lng: ${lng}`;
+            
+            animateSuccess('gpsLocation');
+            showLoading(false);
+            showToast('Position GPS récupérée');
+        }, (error) => {
+            showLoading(false);
+            console.error('Erreur GPS:', error);
+            const errorMessage = "Impossible d'obtenir la localisation.";
+            showToast(errorMessage, true);
+            addErrorToHistory(errorMessage, `Code: ${error.code}, Message: ${error.message}`);
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    });
+    
+    // Événements pour la photo
+    document.getElementById('photoBtn').addEventListener('click', function() {
+        document.getElementById('treePhoto').click();
+    });
+    
+    document.getElementById('treePhoto').addEventListener('change', function(event) {
+        if (event.target.files.length > 0) {
+            let src = URL.createObjectURL(event.target.files[0]);
+            document.getElementById('photoPreview').src = src;
+            document.getElementById('photoContainer').classList.remove("hidden");
+            
+            // Animation pour l'apparition de l'image
+            document.getElementById('photoPreview').classList.add('animate-scale-in');
+            setTimeout(() => {
+                document.getElementById('photoPreview').classList.remove('animate-scale-in');
+            }, 500);
+        }
+    });
+    
+    document.getElementById('clearPhoto').addEventListener('click', function() {
+        document.getElementById('treePhoto').value = "";
+        document.getElementById('photoContainer').classList.add("hidden");
+    });
+    
+    // Événement pour soumettre le formulaire
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        if (!validateForm()) return;
+        
+        showLoading(true, 'Enregistrement en cours...');
+    
+        // Préparation des données pour l'API
+        const rfidTag = document.getElementById('rfidTag').value;
+        const treeType = document.getElementById('treeType').value;
+        const treeHeight = document.getElementById('treeHeight').value;
+        const treeDate = document.getElementById('treeDate').value;
+        const gpsLocation = document.getElementById('gpsLocation').value;
+        const fileInput = document.getElementById('treePhoto');
+        
+        // Création d'un objet FormData pour l'envoi multipart (nécessaire pour l'image)
+        const formData = new FormData();
+        formData.append('espece', treeType);
+        formData.append('rfid', rfidTag);
+        formData.append('date_plantation', treeDate);
+        formData.append('humidite', '0'); // Valeur par défaut pour éviter l'erreur de type décimal
+        formData.append('hauteur', treeHeight);
+        
+        // Correction pour l'erreur d'API - Ajout du mode_humidite
+        formData.append('mode_humidite', 'manuel'); // Définir 'manuel' comme valeur par défaut
+        
+        // Extraction des coordonnées GPS depuis le format affiché
+        // S'assurer qu'il n'y a qu'une seule virgule pour séparer latitude et longitude
+        let coords = gpsLocation.replace('Lat: ', '').replace(' Lng: ', ',');
+        // Vérifier s'il y a plus d'une virgule et la corriger si nécessaire
+        if (coords.split(',').length > 2) {
+            // Extraire uniquement les deux nombres (latitude et longitude)
+            const coordParts = coords.match(/-?\d+(\.\d+)?/g);
+            if (coordParts && coordParts.length >= 2) {
+                coords = coordParts[0] + ',' + coordParts[1];
+            }
+        }
+        formData.append('localisation', coords);
+        console.log('Coordonnées envoyées:', coords);
+        
+        // Ajout de l'image si disponible
+        if (fileInput.files.length > 0) {
+            formData.append('image', fileInput.files[0]);
+        }
+        
+        // Envoi des données à l'API
+        fetch('https://greentrack.dns.army/api.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur réseau: ' + response.status);
+            }
+            return response.text();
+        })
+        .then(data => {
+            console.log('Réponse API:', data);
+            
+            if (data.includes('✅')) {
+                // Succès
+                resetForm();
+                showToast('Arbre enregistré avec succès!');
+            } else {
+                // Erreur
+                const errorMessage = 'Erreur: ' + data;
+                showToast(errorMessage, true);
+                // Ajouter l'erreur API à l'historique aussi
+                addErrorToHistory(errorMessage, `Réponse API: ${data}`);
+            }
+            
+            showLoading(false);
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            const errorMessage = 'Erreur de connexion au serveur. Veuillez réessayer.';
+            showToast(errorMessage, true);
+            addErrorToHistory(errorMessage, error.toString());
+            showLoading(false);
+        });
+    });
+    
+    // Initialiser les logs d'erreur
     const errorLogBtn = document.getElementById('errorLogBtn');
     if (errorLogBtn) {
         errorLogBtn.addEventListener('click', showErrorLogs);
     }
     
+    // Fermeture du modal des logs d'erreur
+    const closeErrorLogBtns = document.querySelectorAll('[onclick="closeErrorLogs()"]');
+    closeErrorLogBtns.forEach(btn => {
+        btn.addEventListener('click', closeErrorLogs);
+    });
+    
+    // Effacement des logs d'erreur
+    const clearErrorLogBtns = document.querySelectorAll('[onclick="clearErrorLogs()"]');
+    clearErrorLogBtns.forEach(btn => {
+        btn.addEventListener('click', clearErrorLogs);
+    });
+    
+    // Chargement de l'historique des erreurs
+    loadErrorHistory();
+    
+    // Vérification de la connexion à l'API
+    checkApiConnection();
+    
     // Initialiser le mode par défaut (Ajout)
     switchMode('add');
-});gatt.
+    
+    console.log('All event listeners initialized');
+});
